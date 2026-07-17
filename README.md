@@ -23,18 +23,21 @@ file:///C:/Users/Window-7/Downloads/npi-ranking%20(2).html
 ## Screenshots
 
 Home
-<img width="1349" height="661" alt="image" src="https://github.com/user-attachments/assets/38117399-c54f-45c1-842b-684558fe20b8" />
+<img width="1354" height="663" alt="image" src="https://github.com/user-attachments/assets/13630f12-478d-4b0d-9fcb-f213c08e7988" />
 
 Ranking Of National Parks Of India
-<img width="1350" height="661" alt="image" src="https://github.com/user-attachments/assets/97155d19-93d4-41e1-b8bb-e318384ece69" />
+<img width="1350" height="661" alt="image" src="https://github.com/user-attachments/assets/61464531-aeaa-437a-a33a-0ad0221604b5" />
+
 
 
 Explore Of States And National Parks
-<img width="1349" height="659" alt="image" src="https://github.com/user-attachments/assets/8a576a61-f491-4996-904a-b21058ac56e9" />
+<img width="1351" height="657" alt="image" src="https://github.com/user-attachments/assets/9ab981f8-ea0f-43a0-a3a0-359889c82429" />
 
 
-Drop down meanu of state 
-<img width="1349" height="655" alt="image" src="https://github.com/user-attachments/assets/493ff15f-abb4-4ebd-bec4-e44866a401b5" />
+
+Drop down meanu of Searching state's and There National Parks 
+<img width="1349" height="657" alt="image" src="https://github.com/user-attachments/assets/c9967db8-1a50-46bb-9b64-5cd0f5989455" />
+
 
 
 
