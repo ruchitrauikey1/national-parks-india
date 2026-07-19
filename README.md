@@ -24,7 +24,8 @@ Newer Version:-  https://claude.ai/api/organizations/3f976c45-3392-4b7d-a6f5-9e4
 ## Screenshots
 
 Home
-<img width="1354" height="663" alt="image" src="https://github.com/user-attachments/assets/13630f12-478d-4b0d-9fcb-f213c08e7988" />
+<img width="1350" height="661" alt="image" src="https://github.com/user-attachments/assets/f6b9d537-427d-4cd1-aef5-83bd3e1bee21" />
+
 
 Ranking Of National Parks Of India
 <img width="1350" height="661" alt="image" src="https://github.com/user-attachments/assets/61464531-aeaa-437a-a33a-0ad0221604b5" />
@@ -38,6 +39,9 @@ Explore Of States And National Parks
 
 Drop down meanu of Searching state's and There National Parks 
 <img width="1349" height="657" alt="image" src="https://github.com/user-attachments/assets/c9967db8-1a50-46bb-9b64-5cd0f5989455" />
+
+Sign in Option
+<img width="1348" height="660" alt="image" src="https://github.com/user-attachments/assets/766240aa-9766-4925-bbc3-b591b29e40bc" />
 
 
 
