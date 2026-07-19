@@ -1,0 +1,2041 @@
+<!DOCTYPE html>
+<!--
+  NPI Ranking — National Park Ranking of India
+  Copyright © 2026 Ruchitra Uikey. All Rights Reserved.
+
+  This application, including its source code, design, layout, and original
+  written content, is the proprietary work of Ruchitra Uikey. No part of this
+  file may be copied, reproduced, redistributed, published, or used to create
+  derivative works, in whole or in part, without the prior written permission
+  of Ruchitra Uikey.
+
+  Third-party data note: national park facts referenced in this app are drawn
+  from Wikipedia (List of national parks of India) and are used as factual
+  reference data, not as copied creative text. Park photographs are loaded
+  live from Wikipedia/Wikimedia at runtime and remain the property of their
+  respective rights holders under their original licenses.
+
+  Unauthorized use of this software is strictly prohibited.
+  See LICENSE.txt (distributed alongside this file) for full terms.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Ruchitra Uikey">
+<meta name="copyright" content="Copyright © 2026 Ruchitra Uikey. All Rights Reserved.">
+<title>NPI Ranking — National Park Ranking of India</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #10201A;
+    --bg-elevated: #152720;
+    --bg-card: #1B3227;
+    --line: #2C4436;
+    --line-soft: #24392C;
+    --ink: #EDE6D6;
+    --ink-dim: #93A796;
+    --ink-faint: #83987F;
+    --gold: #D9A441;
+    --gold-dim: #B98A38;
+    --rust: #C1613F;
+    --teal: #5C9484;
+    --up: #8FB88A;
+    --down: #CE7A5C;
+    --radius: 3px;
+  }
+  *{ box-sizing: border-box; }
+  html,body{ margin:0; padding:0; }
+  html{ scroll-behavior: smooth; }
+  body{
+    background: var(--bg);
+    background-image:
+      radial-gradient(circle at 15% 0%, rgba(217,164,65,0.06), transparent 40%),
+      radial-gradient(circle at 90% 10%, rgba(92,148,132,0.08), transparent 45%);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', sans-serif;
+    min-height: 100vh;
+    position: relative;
+  }
+
+  /* Accessibility helpers */
+  .skip-link-a11y{
+    position: absolute; top: -60px; left: 12px; z-index: 100;
+    background: var(--gold); color: #1A1305; padding: 10px 16px;
+    border-radius: 2px; font-family:'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600;
+    text-decoration: none; transition: top 0.2s ease;
+  }
+  .skip-link-a11y:focus{ top: 12px; }
+
+  a:focus-visible,
+  button:focus-visible,
+  select:focus-visible,
+  [tabindex]:focus-visible{
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+  }
+
+  /* Decorative background scene: minimal, low-opacity forest / tiger / jeep motifs */
+  .bg-scene{
+    position: fixed; inset: 0; z-index: 0;
+    overflow: hidden; pointer-events: none;
+  }
+  .bg-tiger{
+    position: absolute; top: -30px; right: -40px;
+    width: min(46vw, 520px); height: auto;
+    color: var(--gold);
+    opacity: 0.055;
+    transform: rotate(-4deg);
+  }
+  .bg-jeep{
+    position: absolute; bottom: 90px; left: -30px;
+    width: min(30vw, 300px); height: auto;
+    color: var(--teal);
+    opacity: 0.07;
+  }
+  #treeline{
+    position: absolute; bottom: 0; left: 0;
+    width: 100%; height: 120px;
+    color: var(--line-soft);
+    opacity: 0.9;
+  }
+  #treeline polygon{ fill: currentColor; }
+  .bg-fade{
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, transparent 60%, var(--bg) 96%);
+  }
+
+  .wrap{ max-width: 1080px; margin: 0 auto; padding: 40px 20px 80px; position: relative; z-index: 1; }
+
+  /* Header */
+  .site-header{ text-align:center; margin-bottom: 40px; }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 11px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--teal); margin-bottom: 10px;
+  }
+  h1.title{
+    font-family:'Fraunces', serif;
+    font-weight: 700;
+    font-size: clamp(34px, 6vw, 54px);
+    margin: 0 0 8px;
+    letter-spacing: -0.01em;
+  }
+  h1.title span{ color: var(--gold); font-style: italic; font-weight: 600; }
+  .subtitle{ color: var(--ink-dim); font-size: 15px; max-width: 520px; margin: 0 auto; line-height: 1.5; }
+
+  /* Loading */
+  .loading{ text-align:center; padding: 60px 0; color: var(--ink-dim); font-family:'IBM Plex Mono',monospace; font-size: 13px; letter-spacing: 0.05em; }
+
+  /* Matchup */
+  .matchup-section{ margin-bottom: 56px; }
+  .matchup-label{
+    text-align:center; font-family:'IBM Plex Mono', monospace; font-size: 12px;
+    text-transform: uppercase; letter-spacing: 0.2em; color: var(--ink-faint); margin-bottom: 18px;
+  }
+  .matchup{
+    display:grid; grid-template-columns: 1fr auto 1fr; align-items: stretch; gap: 18px;
+  }
+  @media (max-width: 680px){
+    .matchup{ grid-template-columns: 1fr; }
+    .vs-badge{ justify-self:center; margin: -6px 0; }
+  }
+  .park-card{
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 28px 22px;
+    text-align: center;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: transform 0.15s ease, border-color 0.15s ease;
+  }
+  .park-card::before{
+    content:''; position:absolute; top:10px; left:10px; right:10px; bottom:10px;
+    border: 1px solid var(--line-soft); border-radius: 2px; pointer-events:none;
+  }
+  .park-icon{ font-size: 40px; margin-bottom: 12px; display:block; }
+  .park-name{ font-family:'Fraunces', serif; font-weight: 600; font-size: 22px; margin: 0 0 4px; }
+  .park-loc{
+    font-family:'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--gold-dim); margin-bottom: 12px;
+  }
+  .park-blurb{ color: var(--ink-dim); font-size: 13.5px; line-height: 1.55; margin: 0 0 20px; flex: 1 1 auto; }
+  .vote-btn{
+    font-family:'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase;
+    background: var(--gold); color: #1A1305; border: none; padding: 11px 22px;
+    border-radius: 2px; cursor: pointer; font-weight: 600; transition: background 0.15s ease, transform 0.1s ease;
+  }
+  .vote-btn:hover{ background: #E8B457; transform: translateY(-1px); }
+  .vote-btn:active{ transform: translateY(0); }
+  .vote-btn:disabled{ opacity: 0.5; cursor: default; transform:none; }
+
+  .vs-badge{
+    width: 46px; height: 46px; border-radius: 50%;
+    background: var(--rust); color: #fff2ea;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Fraunces', serif; font-style: italic; font-weight: 700; font-size: 15px;
+    border: 1px solid #7d3a22;
+    align-self: center;
+  }
+
+  .skip-row{ text-align:center; margin-top: 16px; }
+  .skip-link{
+    background:none; border:none; color: var(--ink-faint); font-family:'IBM Plex Mono', monospace;
+    font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .skip-link:hover{ color: var(--ink-dim); }
+
+  /* Layout below */
+  .lower-grid{ display:grid; grid-template-columns: 1.5fr 1fr; gap: 32px; align-items:start; }
+  @media (max-width: 780px){ .lower-grid{ grid-template-columns: 1fr; } }
+
+  .panel-heading{
+    font-family:'Fraunces', serif; font-weight: 600; font-size: 20px; margin: 0 0 16px;
+    display:flex; align-items:baseline; justify-content: space-between;
+    border-bottom: 1px solid var(--line); padding-bottom: 10px;
+  }
+  .panel-heading .count{ font-family:'IBM Plex Mono',monospace; font-size: 11px; color: var(--ink-faint); font-weight:400; }
+
+  /* Rankings table */
+  table.rankings{ width: 100%; border-collapse: collapse; }
+  table.rankings thead th{
+    text-align:left; font-family:'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--ink-faint); font-weight: 500; padding: 6px 8px; border-bottom: 1px solid var(--line);
+  }
+  table.rankings td{ padding: 11px 8px; border-bottom: 1px solid var(--line-soft); vertical-align: middle; }
+  table.rankings tbody tr:hover{ background: rgba(217,164,65,0.04); }
+  .rank-cell{ width: 42px; }
+  .rank-badge{
+    display:inline-flex; align-items:center; justify-content:center;
+    width: 26px; height: 26px; border-radius: 50%;
+    font-family:'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600;
+    border: 1px solid var(--line);
+  }
+  .rank-badge.r1{ background: rgba(217,164,65,0.18); border-color: var(--gold); color: var(--gold); }
+  .rank-badge.r2{ background: rgba(147,167,150,0.12); border-color: var(--ink-dim); color: var(--ink); }
+  .rank-badge.r3{ background: rgba(193,97,63,0.14); border-color: var(--rust); color: #E6997C; }
+  .park-cell{ display:flex; align-items:center; gap: 10px; }
+  .park-cell .icon{ font-size: 18px; }
+  .park-cell .name{ font-weight: 500; font-size: 14px; color: var(--ink); }
+  .park-cell .loc{ font-size: 11px; color: var(--ink-faint); }
+
+  /* Make the top-3 ranked park names clearly readable and stand out */
+  tr.rank-row-top{ background: rgba(255,255,255,0.015); }
+  tr.rank-row-1 .park-cell .name{ color: var(--gold); font-weight: 700; }
+  tr.rank-row-1 .score-cell{ color: var(--gold); font-weight: 600; }
+  tr.rank-row-2 .park-cell .name{ color: #F1F5EF; font-weight: 700; }
+  tr.rank-row-3 .park-cell .name{ color: #F0A57F; font-weight: 700; }
+  .score-cell{ font-family:'IBM Plex Mono', monospace; font-size: 14px; text-align:right; }
+  .change-cell{ font-family:'IBM Plex Mono', monospace; font-size: 12.5px; text-align:right; white-space:nowrap; }
+  .change-up{ color: var(--up); }
+  .change-down{ color: var(--down); }
+  .change-flat{ color: var(--ink-faint); }
+
+  /* Recent votes */
+  .recent-list{ display:flex; flex-direction:column; gap: 0; }
+  .recent-item{
+    padding: 12px 4px; border-bottom: 1px solid var(--line-soft);
+    font-size: 13px; line-height: 1.5;
+  }
+  .recent-item:last-child{ border-bottom:none; }
+  .recent-item .winner{ color: var(--gold); font-weight: 600; }
+  .recent-item .loser{ color: var(--ink-faint); }
+  .recent-item .time{
+    display:block; font-family:'IBM Plex Mono', monospace; font-size: 10.5px; color: var(--ink-faint);
+    margin-top: 2px; letter-spacing: 0.05em;
+  }
+  .empty-note{ color: var(--ink-faint); font-size: 13px; padding: 10px 4px; }
+
+  /* Explore by state */
+  .explore-section{ margin-top: 56px; }
+  .explore-heading{ margin-bottom: 14px; }
+  .pull-quote{
+    font-family: 'Fraunces', serif; font-style: italic; font-weight: 400;
+    font-size: 15.5px; color: var(--teal); margin: 0 0 22px; line-height: 1.5;
+    max-width: 480px;
+  }
+  .state-select-row{ display:flex; align-items:center; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+  .state-select-label{
+    font-family:'IBM Plex Mono', monospace; font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.12em; color: var(--ink-faint);
+  }
+
+  /* Custom accessible dropdown with slide-in animation */
+  .custom-select{ position: relative; min-width: 220px; }
+  .select-trigger{
+    width: 100%; display:flex; align-items:center; justify-content: space-between; gap: 10px;
+    background: var(--bg-card); color: var(--ink); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 10px 14px; font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 14px; font-weight: 500; cursor: pointer; transition: border-color 0.15s ease;
+  }
+  .select-trigger:hover{ border-color: var(--gold-dim); }
+  .select-caret{
+    width: 8px; height: 8px; border-right: 2px solid var(--gold); border-bottom: 2px solid var(--gold);
+    transform: rotate(45deg); transition: transform 0.2s ease; flex-shrink: 0; margin-top: -3px;
+  }
+  .custom-select.open .select-caret{ transform: rotate(-135deg); margin-top: 3px; }
+  .select-panel{
+    margin: 6px 0 0; padding: 10px;
+    position: absolute; top: 100%; left: 0; right: 0; z-index: 20;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: var(--radius);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.35);
+    transform-origin: top center;
+    transform: translateY(-8px) scaleY(0.92);
+    opacity: 0;
+    visibility: hidden;
+    transition: transform 0.22s cubic-bezier(.2,.9,.3,1.2), opacity 0.18s ease, visibility 0.22s;
+  }
+  .custom-select.open .select-panel{
+    transform: translateY(0) scaleY(1);
+    opacity: 1;
+    visibility: visible;
+  }
+  .select-search{
+    width: 100%; box-sizing: border-box; background: var(--bg-elevated); color: var(--ink);
+    border: 1px solid var(--line-soft); border-radius: 2px; padding: 8px 10px;
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 13px; margin-bottom: 8px;
+  }
+  .select-search::placeholder{ color: var(--ink-faint); }
+  .select-search:focus{ outline: 1px solid var(--gold); border-color: var(--gold); }
+  .select-options{
+    list-style: none; margin: 0; padding: 0;
+    max-height: 240px; overflow-y: auto;
+  }
+  .select-option{
+    padding: 9px 12px; font-size: 13.5px; border-radius: 2px; cursor: pointer;
+    display:flex; align-items:center; justify-content: space-between; gap: 8px;
+    position: relative; overflow: hidden;
+    animation: optIn 0.2s ease both;
+    animation-delay: calc(var(--i, 0) * 28ms);
+  }
+  .select-option:hover, .select-option.active{ background: rgba(217,164,65,0.12); color: var(--gold); }
+  .select-option .opt-count{ font-family:'IBM Plex Mono', monospace; font-size: 10.5px; color: var(--ink-faint); }
+  .select-option:hover .opt-count, .select-option.active .opt-count{ color: var(--gold-dim); }
+  .select-option mark{ background: rgba(217,164,65,0.35); color: inherit; border-radius: 2px; }
+  .select-empty{ padding: 14px 10px; font-size: 12.5px; color: var(--ink-faint); text-align: center; }
+  .opt-sub{ font-size: 10.5px; color: var(--ink-faint); font-weight: 400; margin-top: 1px; }
+  @keyframes optIn{
+    from{ opacity: 0; transform: translateY(-4px); }
+    to{ opacity: 1; transform: translateY(0); }
+  }
+
+  .explore-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; }
+  .explore-card{
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 20px; display:flex; flex-direction:column; gap: 14px;
+    animation: cardIn 0.35s ease both;
+  }
+  .explore-top{ display:grid; grid-template-columns: 1fr auto; align-items: flex-start; gap: 12px; }
+
+  /* Photo frames: show a live park image when available, emoji fallback otherwise */
+  .photo-frame{
+    position: relative; width: 100%; border-radius: 2px; overflow: hidden;
+    background: var(--bg-elevated); border: 1px solid var(--line-soft);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 14px;
+  }
+  .photo-frame-lg{ height: 130px; }
+  .photo-frame-sm{ height: 110px; }
+  .photo-frame .frame-icon{ font-size: 34px; opacity: 0.85; }
+  .photo-frame.has-photo .frame-icon{ display: none; }
+  .photo-frame img{
+    width: 100%; height: 100%; object-fit: cover; display: block;
+    animation: fadeInPhoto 0.4s ease;
+  }
+  @keyframes fadeInPhoto{ from{ opacity: 0; } to{ opacity: 1; } }
+  .explore-icon{ font-size: 30px; line-height: 1.2; }
+  .explore-name{ font-family:'Fraunces', serif; font-weight: 600; font-size: 17px; margin: 0 0 4px; line-height: 1.25; }
+  .explore-speciality{ color: var(--ink-dim); font-size: 13px; line-height: 1.55; margin: 0; }
+
+  .rating-badge{
+    font-family:'IBM Plex Mono', monospace; font-weight: 600; font-size: 15px;
+    padding: 5px 9px; border-radius: 20px; border: 1px solid; white-space: nowrap;
+  }
+  .rating-badge-max{ font-size: 10px; font-weight: 400; opacity: 0.75; }
+  .rating-badge.rate-red{ color: #E68A6E; border-color: #7A4030; background: rgba(206,122,92,0.12); }
+  .rating-badge.rate-yellow{ color: #E3C168; border-color: #7A6A30; background: rgba(217,164,65,0.12); }
+  .rating-badge.rate-green{ color: #8FB88A; border-color: #3E5C3D; background: rgba(143,184,138,0.12); }
+  .rating-badge.rate-none{ color: var(--ink-faint); border-color: var(--line); background: transparent; }
+
+  .explore-stats{ display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .stat-chip{
+    background: var(--bg-elevated); border: 1px solid var(--line-soft); border-radius: 2px;
+    padding: 8px 10px; display:flex; flex-direction:column; gap: 3px;
+  }
+  .stat-label{
+    font-family:'IBM Plex Mono', monospace; font-size: 9.5px; text-transform:uppercase;
+    letter-spacing: 0.1em; color: var(--ink-faint);
+  }
+  .stat-value{ font-size: 13px; font-weight: 500; }
+
+  .visitor-row{
+    display:grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+    border-top: 1px solid var(--line-soft); border-bottom: 1px solid var(--line-soft); padding: 12px 0;
+  }
+  .visitor-stat{ text-align:center; display:flex; flex-direction:column; gap: 2px; }
+  .v-num{ font-family:'IBM Plex Mono', monospace; font-size: 14px; color: var(--gold); font-weight: 600; }
+  .v-label{ font-size: 10px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.08em; }
+
+  .rate-row{ display:flex; align-items:center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+  .rate-label{ font-size: 11.5px; color: var(--ink-faint); font-family:'IBM Plex Mono', monospace; letter-spacing: 0.03em; }
+  .stars{ display:flex; gap: 2px; }
+  .star{
+    background:none; border:none; cursor:pointer; font-size: 18px; padding: 0 1px;
+    color: var(--line); transition: color 0.1s ease, transform 0.1s ease;
+    line-height: 1;
+  }
+  .star.filled{ color: var(--gold); }
+  .star:hover{ transform: scale(1.15); }
+  .rate-count{ font-family:'IBM Plex Mono', monospace; font-size: 10.5px; color: var(--ink-faint); }
+
+  .footer-note{
+    text-align:center; margin-top: 56px; color: var(--ink-faint); font-size: 12px;
+    font-family:'IBM Plex Mono', monospace; letter-spacing: 0.02em; line-height: 1.7;
+  }
+  .footer-note button{
+    background:none; border:none; color: var(--ink-faint); text-decoration: underline;
+    text-underline-offset: 3px; cursor:pointer; font-family: inherit; font-size: inherit;
+  }
+  .footer-note button:hover{ color: var(--down); }
+  .copyright-line{ display: inline-block; margin-top: 10px; color: var(--ink-faint); letter-spacing: 0.03em; }
+
+  /* Top bar: Save Jungles banner + sign-in */
+  .topbar{ position: relative; z-index: 6; background: linear-gradient(90deg, rgba(92,148,132,0.18), rgba(217,164,65,0.12)); border-bottom: 1px solid var(--line); }
+  .topbar-inner{
+    max-width: 1080px; margin: 0 auto; padding: 10px 20px;
+    display:flex; align-items:center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  }
+  .topbar-message{ font-size: 12.5px; color: var(--ink); display:flex; align-items:center; gap: 7px; line-height: 1.4; }
+  .auth-corner{ position: relative; flex-shrink: 0; }
+  .auth-trigger{
+    background: transparent; color: #fff; border: 1px solid rgba(255,255,255,0.45);
+    padding: 7px 18px; border-radius: 20px; font-family:'IBM Plex Mono', monospace;
+    font-size: 11.5px; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease; position: relative; overflow: hidden;
+  }
+  .auth-trigger:hover{ background: rgba(255,255,255,0.08); border-color: #fff; }
+  .auth-popup{
+    position: absolute; top: calc(100% + 10px); right: 0; width: 288px; z-index: 60;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: var(--radius);
+    box-shadow: 0 14px 32px rgba(0,0,0,0.45); padding: 20px;
+    transform: translateY(-8px) scale(0.96); opacity: 0; visibility: hidden;
+    transition: transform 0.22s cubic-bezier(.2,.9,.3,1.2), opacity 0.18s ease, visibility 0.22s;
+  }
+  .auth-corner.open .auth-popup{ transform: translateY(0) scale(1); opacity: 1; visibility: visible; }
+  .auth-title{ font-family:'Fraunces', serif; font-weight: 600; font-size: 17px; margin: 0 0 4px; }
+  .auth-sub{ font-size: 12.5px; color: var(--ink-dim); margin: 0 0 16px; line-height: 1.5; }
+  .auth-btn{
+    width: 100%; padding: 11px; border-radius: 24px; font-size: 13.5px; font-weight: 600;
+    cursor: pointer; margin-bottom: 8px; display:flex; align-items:center; justify-content:center; gap: 8px;
+    position: relative; overflow: hidden; font-family: 'IBM Plex Sans', sans-serif;
+  }
+  .auth-btn-solid{ background: #000; color: #fff; border: 1px solid #000; }
+  .auth-btn-solid:hover{ background: #161616; }
+  .auth-btn-ghost{ background: transparent; color: #fff; border: 1px solid rgba(255,255,255,0.4); }
+  .auth-btn-ghost:hover{ background: rgba(255,255,255,0.08); }
+  .auth-g-icon{ width: 16px; height: 16px; border-radius: 50%; background: #fff; color:#000; display:inline-flex; align-items:center; justify-content:center; font-size: 11px; font-weight:700; flex-shrink:0; }
+  .auth-setup-link{ display:block; text-align:center; font-size: 11px; color: var(--teal); margin-top: 8px; text-decoration: underline; text-underline-offset: 3px; }
+  .auth-profile{ display:flex; align-items:center; gap: 10px; margin-bottom: 16px; }
+  .auth-avatar{ width: 38px; height: 38px; border-radius: 50%; background: var(--gold); color: #1A1305; display:flex; align-items:center; justify-content:center; font-weight: 700; overflow: hidden; flex-shrink: 0; }
+  .auth-avatar img{ width: 100%; height: 100%; object-fit: cover; }
+  .auth-name{ font-size: 13.5px; font-weight: 600; }
+  .auth-email{ font-size: 11px; color: var(--ink-faint); }
+  .auth-error{ font-size: 11.5px; color: var(--down); line-height: 1.5; margin: 6px 0 0; }
+  .auth-error-block{
+    background: rgba(206,122,92,0.1); border: 1px solid rgba(206,122,92,0.35);
+    padding: 10px; border-radius: 2px; margin: 0 0 14px;
+  }
+  .auth-error code, .auth-error-block code{
+    background: rgba(255,255,255,0.08); padding: 1px 4px; border-radius: 2px; font-family:'IBM Plex Mono', monospace;
+  }
+  .auth-input-label{
+    display:block; font-family:'IBM Plex Mono', monospace; font-size: 10.5px; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--ink-faint); margin-bottom: 6px;
+  }
+  .auth-input{
+    width: 100%; background: var(--bg-elevated); border: 1px solid var(--line); color: var(--ink);
+    padding: 9px 10px; border-radius: 2px; font-size: 12.5px; font-family: 'IBM Plex Mono', monospace;
+    margin-bottom: 10px;
+  }
+  .auth-input:focus{ outline: 1px solid var(--gold); border-color: var(--gold); }
+  .auth-note{ font-size: 11px; color: var(--ink-faint); line-height: 1.5; margin: 10px 0 0; }
+  .auth-forget-link{
+    display:block; width: 100%; text-align:center; background: none; border: none; margin-top: 10px;
+    font-size: 11px; color: var(--ink-faint); text-decoration: underline; text-underline-offset: 3px; cursor: pointer;
+  }
+  .auth-forget-link:hover{ color: var(--ink-dim); }
+  .auth-divider{
+    display:flex; align-items:center; gap: 10px; margin: 14px 0;
+    font-family:'IBM Plex Mono', monospace; font-size: 10.5px; text-transform: uppercase;
+    letter-spacing: 0.1em; color: var(--ink-faint);
+  }
+  .auth-divider::before, .auth-divider::after{ content:''; flex:1; height:1px; background: var(--line); }
+
+  /* Click ripple, used on vote/star/auth/option/reset buttons */
+  .vote-btn, .star, .auth-trigger, .auth-btn, .select-option, #resetBtn{ position: relative; overflow: hidden; }
+  .ripple{
+    position: absolute; border-radius: 50%; background: rgba(255,255,255,0.35);
+    transform: scale(0); animation: rippleAnim 0.6s ease-out; pointer-events: none;
+  }
+  @keyframes rippleAnim{ to{ transform: scale(2.4); opacity: 0; } }
+
+  /* Voting feedback */
+  .park-card{ position: relative; }
+  .card-win{ animation: winPulse 0.6s ease; border-color: var(--up) !important; box-shadow: 0 0 0 3px rgba(143,184,138,0.25); }
+  .card-lose{ animation: loseFade 0.6s ease forwards; }
+  @keyframes winPulse{
+    0%{ transform: scale(1); }
+    35%{ transform: scale(1.035); }
+    100%{ transform: scale(1); }
+  }
+  @keyframes loseFade{
+    from{ opacity: 1; }
+    to{ opacity: 0.5; filter: grayscale(0.4); }
+  }
+  .floating-delta{
+    position: absolute; top: 12px; right: 16px; color: var(--up);
+    font-family: 'IBM Plex Mono', monospace; font-weight: 700; font-size: 14px;
+    animation: floatUp 0.95s ease forwards; pointer-events: none;
+  }
+  @keyframes floatUp{
+    0%{ opacity: 0; transform: translateY(4px); }
+    18%{ opacity: 1; transform: translateY(0); }
+    100%{ opacity: 0; transform: translateY(-32px); }
+  }
+  .confetti-piece{
+    position: fixed; width: 6px; height: 11px; z-index: 300; pointer-events: none;
+    border-radius: 1px; animation: confettiFall 0.85s ease-in forwards;
+  }
+  @keyframes confettiFall{
+    0%{ opacity: 1; transform: translateY(0) rotate(0deg); }
+    100%{ opacity: 0; transform: translateY(74px) rotate(220deg); }
+  }
+
+  /* Animations */
+  @keyframes cardIn{
+    from{ opacity: 0; transform: translateY(10px); }
+    to{ opacity: 1; transform: translateY(0); }
+  }
+  @keyframes starPop{
+    0%{ transform: scale(1); }
+    40%{ transform: scale(1.35); }
+    100%{ transform: scale(1); }
+  }
+  .star.just-rated{ animation: starPop 0.32s ease; }
+
+  @keyframes toastIn{
+    from{ opacity: 0; transform: translate(-50%, 16px); }
+    to{ opacity: 1; transform: translate(-50%, 0); }
+  }
+  @keyframes toastOut{
+    from{ opacity: 1; transform: translate(-50%, 0); }
+    to{ opacity: 0; transform: translate(-50%, 16px); }
+  }
+  .toast{
+    position: fixed; left: 50%; bottom: 28px; z-index: 200;
+    background: var(--bg-card); color: var(--ink); border: 1px solid var(--gold-dim);
+    padding: 12px 20px; border-radius: 3px; font-size: 13.5px; font-weight: 500;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    display: none;
+    transform: translate(-50%, 16px);
+    max-width: calc(100vw - 32px);
+    text-align: center;
+  }
+  .toast.show{ display:block; animation: toastIn 0.28s cubic-bezier(.2,.9,.3,1.2) forwards; }
+  .toast.hide{ display:block; animation: toastOut 0.22s ease forwards; }
+  .toast .toast-icon{ margin-right: 6px; }
+</style>
+</head>
+<body>
+
+<a href="#app" class="skip-link-a11y">Skip to rankings</a>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="topbar-message"><span aria-hidden="true">🌿</span> Save Jungles — every vote and rating you cast helps spotlight India's wild places worth protecting.</div>
+    <div class="auth-corner" id="authCorner">
+      <button type="button" id="authTrigger" class="auth-trigger" aria-haspopup="dialog" aria-expanded="false">
+        <span id="authTriggerLabel">Sign in</span>
+      </button>
+      <div id="authPopup" class="auth-popup" role="dialog" aria-label="Sign in" hidden>
+        <div id="authPopupContent"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="bg-scene">
+  <svg class="bg-tiger" viewBox="0 0 300 190" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <ellipse cx="150" cy="105" rx="98" ry="38" fill="currentColor"/>
+    <circle cx="248" cy="72" r="30" fill="currentColor"/>
+    <polygon points="227,48 234,20 246,44" fill="currentColor"/>
+    <polygon points="259,44 266,18 275,46" fill="currentColor"/>
+    <path d="M52,95 C18,88 -8,60 6,30 C18,52 34,68 56,78 Z" fill="currentColor"/>
+    <rect x="82" y="135" width="15" height="48" rx="7" fill="currentColor"/>
+    <rect x="122" y="138" width="15" height="50" rx="7" fill="currentColor"/>
+    <rect x="188" y="138" width="15" height="50" rx="7" fill="currentColor"/>
+    <rect x="218" y="135" width="15" height="48" rx="7" fill="currentColor"/>
+  </svg>
+  <svg class="bg-jeep" viewBox="0 0 210 130" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <rect x="8" y="58" width="12" height="30" rx="3" fill="currentColor"/>
+    <rect x="18" y="58" width="164" height="46" rx="7" fill="currentColor"/>
+    <rect x="45" y="22" width="92" height="40" rx="4" fill="currentColor"/>
+    <rect x="49" y="8" width="4" height="18" fill="currentColor"/>
+    <rect x="122" y="8" width="4" height="18" fill="currentColor"/>
+    <rect x="49" y="8" width="77" height="4" fill="currentColor"/>
+    <circle cx="55" cy="106" r="18" fill="currentColor"/>
+    <circle cx="150" cy="106" r="18" fill="currentColor"/>
+    <circle cx="193" cy="76" r="12" fill="currentColor"/>
+  </svg>
+  <svg id="treeline" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg>
+  <div class="bg-fade"></div>
+</div>
+
+<div class="wrap">
+
+  <header class="site-header">
+    <div class="eyebrow">National Park Ranking of India</div>
+    <h1 class="title">NPI <span>Ranking</span></h1>
+    <p class="subtitle">Every one of India's 110 national parks, across 30 states and union territories — vote head-to-head and watch a live Elo rating shift with every matchup.</p>
+  </header>
+
+  <div id="app">
+    <div class="loading">loading the trailhead…</div>
+  </div>
+
+  <section class="explore-section">
+    <h2 class="panel-heading explore-heading">Explore by State <span class="count">30 states · 110 parks</span></h2>
+    <p class="pull-quote">"Every park on this list earned its stripes — literally, in a few cases."</p>
+    <div class="state-select-row">
+      <span id="stateSelectLabel" class="state-select-label">Choose a state</span>
+      <div class="custom-select" id="stateDropdownWrap">
+        <button type="button"
+                id="stateTrigger"
+                class="select-trigger"
+                aria-haspopup="listbox"
+                aria-expanded="false"
+                aria-labelledby="stateSelectLabel stateTrigger">
+          <span id="stateTriggerLabel">Uttarakhand</span>
+          <span class="select-caret" aria-hidden="true"></span>
+        </button>
+        <div id="stateListboxWrap" class="select-panel" hidden>
+          <input type="text" id="stateSearch" class="select-search" placeholder="Search states or parks…" autocomplete="off" aria-label="Search states or national parks">
+          <ul id="stateListbox" class="select-options" role="listbox" aria-labelledby="stateSelectLabel" tabindex="-1"></ul>
+        </div>
+      </div>
+    </div>
+    <div id="stateParks" aria-live="polite"></div>
+  </section>
+
+
+  <p class="footer-note" id="footerNote" style="display:none;">
+    Rankings are shared with everyone using this app · Elo system, K = 32 · <button id="resetBtn">reset rankings</button>
+    <br>Park photos are loaded live from Wikipedia; a few lesser-known parks may show the icon instead if no photo is published there.
+    <br>Population and visitor figures are shown for major reserves with published census data; smaller parks show "Not officially published" rather than a guess.
+    <br><span class="copyright-line">© 2026 Ruchitra Uikey. All rights reserved.</span>
+  </p>
+
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ============================================================
+   GOOGLE SIGN-IN SETUP
+   Real "Sign in with Google" needs a Client ID that belongs to
+   YOU — Claude can't supply one, because Google ties each Client
+   ID to a specific, verified domain that only the site owner can
+   register. Two ways to set yours:
+   1. Paste it straight into the "Sign in" popup in the app (saved
+      in your browser only, per README below), or
+   2. Hard-code it here instead: const GOOGLE_CLIENT_ID_DEFAULT = "...";
+
+   To get a Client ID:
+   a. Go to https://console.cloud.google.com/apis/credentials
+   b. Create an OAuth 2.0 Client ID (type: Web application)
+   c. Under "Authorized JavaScript origins" add the exact domain
+      you'll open this file from (e.g. https://yoursite.com, or
+      http://localhost:5500 if you're testing locally).
+   d. Google Sign-In will NOT run inside Claude's in-chat preview —
+      it's a sandboxed origin Google can't be told to trust. Download
+      this file and open it from your own domain (or localhost) first.
+   ============================================================ */
+const GOOGLE_CLIENT_ID_DEFAULT = ""; // optional: hard-code your Client ID here instead of pasting it in the UI
+const GOOGLE_CLIENT_ID_KEY = 'google-client-id';
+const CURRENT_USER_KEY = 'current-user';
+let googleClientId = GOOGLE_CLIENT_ID_DEFAULT;
+
+let currentUser = null; // {name, email, picture, via} — persisted per-browser via window.storage
+let authOpen = false;
+let gisScriptLoaded = false;
+let showGoogleSetupForm = false;
+
+async function loadSavedClientId(){
+  try{
+    const userRes = await window.storage.get(CURRENT_USER_KEY, false);
+    if(userRes && userRes.value) currentUser = JSON.parse(userRes.value);
+  }catch(e){ /* not signed in yet */ }
+  if(googleClientId) return; // hard-coded default takes priority
+  try{
+    const res = await window.storage.get(GOOGLE_CLIENT_ID_KEY, false);
+    if(res && res.value) googleClientId = res.value;
+  }catch(e){ /* nothing saved yet */ }
+}
+
+async function persistCurrentUser(){
+  try{
+    if(currentUser) await window.storage.set(CURRENT_USER_KEY, JSON.stringify(currentUser), false);
+    else await window.storage.delete(CURRENT_USER_KEY, false);
+  }catch(e){ /* best-effort; session still works without persistence */ }
+}
+
+function toggleAuthPopup(force){
+  authOpen = typeof force === 'boolean' ? force : !authOpen;
+  document.getElementById('authCorner').classList.toggle('open', authOpen);
+  document.getElementById('authTrigger').setAttribute('aria-expanded', String(authOpen));
+  document.getElementById('authPopup').hidden = !authOpen;
+  if(authOpen) renderAuthPopup();
+}
+
+function renderAuthPopup(){
+  const content = document.getElementById('authPopupContent');
+  if(currentUser){
+    content.innerHTML = `
+      <div class="auth-profile">
+        <div class="auth-avatar">${currentUser.picture ? `<img src="${currentUser.picture}" alt="">` : (currentUser.name || 'U').charAt(0).toUpperCase()}</div>
+        <div>
+          <div class="auth-name">${currentUser.name || 'Signed in'}</div>
+          <div class="auth-email">${currentUser.email || ''}</div>
+        </div>
+      </div>
+      <button class="auth-btn auth-btn-ghost" onclick="signOut()">Sign out</button>
+    `;
+    document.getElementById('authTriggerLabel').textContent = (currentUser.name || 'Account').split(' ')[0];
+    return;
+  }
+
+  const googleSection = googleClientId
+    ? `<div id="googleBtnContainer"></div>
+       <button class="auth-forget-link" onclick="forgetClientId()">Use a different Client ID</button>`
+    : (showGoogleSetupForm ? googleSetupFormHtml() : `<button class="auth-btn auth-btn-solid" onclick="toggleGoogleSetupForm(true)"><span class="auth-g-icon">G</span> Continue with Google</button>`);
+
+  content.innerHTML = `
+    <div class="auth-title">Sign in</div>
+    <p class="auth-sub">Sign in to keep track of the parks you've voted and rated.</p>
+    <label class="auth-input-label" for="emailNameInput">Name</label>
+    <input type="text" id="emailNameInput" class="auth-input" placeholder="Your name" autocomplete="name">
+    <label class="auth-input-label" for="emailAddrInput">Email</label>
+    <input type="email" id="emailAddrInput" class="auth-input" placeholder="you@example.com" autocomplete="email">
+    <div id="emailAuthError" class="auth-error" style="display:none;"></div>
+    <button class="auth-btn auth-btn-ghost" onclick="signInWithEmail()">Continue with email</button>
+    <div class="auth-divider"><span>or</span></div>
+    ${googleSection}
+  `;
+  if(googleClientId) renderGoogleButton();
+}
+
+function googleSetupFormHtml(){
+  const isFileProtocol = window.location.protocol === 'file:';
+  return `
+    ${isFileProtocol ? `<p class="auth-error auth-error-block">This page is open as a local <code>file://</code> address. Google rejects that outright — it needs a real <code>http://</code> or <code>https://</code> origin. Serve this folder locally (e.g. <code>python3 -m http.server</code>) and open it as <code>http://localhost:8000/…</code> instead, then try again.</p>` : ''}
+    <p class="auth-sub">Google Sign-In needs a Client ID tied to the domain this page is running on — Claude can't generate one for you, but you can add your own below.</p>
+    <label class="auth-input-label" for="clientIdInput">Google OAuth Client ID</label>
+    <input type="text" id="clientIdInput" class="auth-input" placeholder="1234567890-abc.apps.googleusercontent.com" autocomplete="off">
+    <div id="clientIdError" class="auth-error" style="display:none;"></div>
+    <button class="auth-btn auth-btn-solid" onclick="saveClientId()"><span class="auth-g-icon">G</span> Save &amp; continue with Google</button>
+    <a class="auth-setup-link" href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener">Get a Client ID from Google Cloud Console ↗</a>
+    <p class="auth-note">Note: this only works once the page is opened from a domain you've authorized in Google Cloud (application type must be "Web application") — it will not work inside Claude's in-chat preview.</p>
+    <button class="auth-forget-link" onclick="toggleGoogleSetupForm(false)">Never mind, use email instead</button>
+  `;
+}
+
+function toggleGoogleSetupForm(show){
+  showGoogleSetupForm = show;
+  renderAuthPopup();
+}
+
+function isValidEmail(v){
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+}
+
+async function signInWithEmail(){
+  const nameInput = document.getElementById('emailNameInput');
+  const emailInput = document.getElementById('emailAddrInput');
+  const errorEl = document.getElementById('emailAuthError');
+  const name = (nameInput?.value || '').trim();
+  const email = (emailInput?.value || '').trim();
+
+  const showInlineError = (msg) => {
+    if(errorEl){ errorEl.textContent = msg; errorEl.style.display = 'block'; }
+  };
+
+  if(!name){ showInlineError('Enter your name to continue.'); return; }
+  if(!isValidEmail(email)){ showInlineError('Enter a valid email address.'); return; }
+
+  currentUser = { name, email, picture: null, via: 'email' };
+  await persistCurrentUser();
+  toggleAuthPopup(false);
+  showToast(`Welcome, ${name.split(' ')[0]}!`);
+  renderAuthPopup();
+}
+
+async function saveClientId(){
+  const input = document.getElementById('clientIdInput');
+  const errorEl = document.getElementById('clientIdError');
+  // Strip stray quotes/whitespace people commonly paste in by accident
+  let value = (input?.value || '').trim().replace(/^["']|["']$/g, '').trim();
+
+  const showInlineError = (msg) => {
+    if(errorEl){ errorEl.textContent = msg; errorEl.style.display = 'block'; }
+    showToast(msg);
+  };
+
+  if(!value){
+    showInlineError('Paste a Client ID first — get one from Google Cloud Console.');
+    return;
+  }
+  // A real Google OAuth Client ID always looks like: <digits>-<chars>.apps.googleusercontent.com
+  // Catching an obviously wrong paste here (secret, wrong field, truncated ID, stray characters)
+  // avoids sending Google a malformed request that dead-ends on their own 400 error page.
+  const clientIdPattern = /^\d+-[a-z0-9]+\.apps\.googleusercontent\.com$/i;
+  if(!clientIdPattern.test(value)){
+    showInlineError('That doesn\'t look like a Client ID. It should end in ".apps.googleusercontent.com" — check you copied the Client ID, not the Client secret.');
+    return;
+  }
+  if(errorEl) errorEl.style.display = 'none';
+  googleClientId = value;
+  try{
+    await window.storage.set(GOOGLE_CLIENT_ID_KEY, value, false);
+  }catch(e){ /* saving is best-effort; sign-in still works this session either way */ }
+  renderAuthPopup();
+}
+
+async function forgetClientId(){
+  googleClientId = GOOGLE_CLIENT_ID_DEFAULT;
+  showGoogleSetupForm = false;
+  try{ await window.storage.delete(GOOGLE_CLIENT_ID_KEY, false); }catch(e){}
+  renderAuthPopup();
+}
+
+function loadGoogleScript(cb){
+  if(gisScriptLoaded){ cb(); return; }
+  const s = document.createElement('script');
+  s.src = 'https://accounts.google.com/gsi/client';
+  s.async = true; s.defer = true;
+  s.onload = () => { gisScriptLoaded = true; cb(); };
+  s.onerror = () => { showGoogleLoadError(); };
+  document.head.appendChild(s);
+}
+
+function renderGoogleButton(){
+  loadGoogleScript(() => {
+    try{
+      google.accounts.id.initialize({ client_id: googleClientId, callback: handleGoogleCredential });
+      google.accounts.id.renderButton(document.getElementById('googleBtnContainer'), { theme: 'filled_black', size: 'large', shape: 'pill', width: 240 });
+      // If the origin isn't authorized for this Client ID, Google logs a console
+      // error but doesn't throw — surface something visible instead of silence.
+      setTimeout(() => {
+        const btn = document.getElementById('googleBtnContainer');
+        if(btn && btn.children.length === 0) showGoogleLoadError();
+      }, 1500);
+    }catch(e){
+      showGoogleLoadError();
+    }
+  });
+}
+
+function showGoogleLoadError(){
+  const c = document.getElementById('googleBtnContainer');
+  if(c) c.innerHTML = `<p class="auth-error">Google didn't render a button here — usually because this page's exact address isn't in that Client ID's "Authorized JavaScript origins" list yet, or this is Claude's in-chat preview (which Google will never authorize). Add this page's real URL in Google Cloud Console, then reload.</p><button class="auth-forget-link" onclick="forgetClientId()">Try a different Client ID</button>`;
+}
+
+function handleGoogleCredential(response){
+  try{
+    const base64 = response.credential.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
+    const payload = JSON.parse(atob(base64));
+    currentUser = { name: payload.name, email: payload.email, picture: payload.picture, via: 'google' };
+  }catch(e){
+    currentUser = { name: 'Signed in user', via: 'google' };
+  }
+  persistCurrentUser();
+  toggleAuthPopup(false);
+  showToast(`Welcome, ${(currentUser.name || 'friend').split(' ')[0]}!`);
+  renderAuthPopup();
+}
+
+function signOut(){
+  currentUser = null;
+  persistCurrentUser();
+  if(window.google && google.accounts && google.accounts.id){
+    try{ google.accounts.id.disableAutoSelect(); }catch(e){}
+  }
+  document.getElementById('authTriggerLabel').textContent = 'Sign in';
+  renderAuthPopup();
+  showToast('Signed out');
+}
+
+
+const STORAGE_KEY = 'parks-and-votes';
+
+/* ============================================================
+   LIVE PARK PHOTOS
+   Each park card shows a real photo pulled live from Wikipedia's
+   public REST summary API (no key needed, CORS-enabled), keyed by
+   the park's wikiTitle. If a park has no usable photo on Wikipedia,
+   or the request fails, the emoji icon stays as the fallback.
+   ============================================================ */
+const imageCache = {}; // wikiTitle -> url string | null (null = tried, no image)
+
+async function fetchParkImage(title){
+  if(imageCache[title] !== undefined) return imageCache[title];
+  try{
+    const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`);
+    if(!res.ok) throw new Error('not ok');
+    const data = await res.json();
+    const url = (data.thumbnail && data.thumbnail.source) || (data.originalimage && data.originalimage.source) || null;
+    imageCache[title] = url;
+    return url;
+  }catch(e){
+    imageCache[title] = null;
+    return null;
+  }
+}
+
+async function loadParkPhotos(){
+  const frames = Array.from(document.querySelectorAll('.photo-frame[data-wiki]'));
+  const titles = [...new Set(frames.map(f => f.dataset.wiki))];
+  await Promise.all(titles.map(async title => {
+    const url = await fetchParkImage(title);
+    if(!url) return;
+    document.querySelectorAll('.photo-frame[data-wiki]').forEach(f => {
+      if(f.dataset.wiki === title && !f.classList.contains('has-photo')){
+        const img = document.createElement('img');
+        img.src = url;
+        img.alt = '';
+        img.loading = 'lazy';
+        img.referrerPolicy = 'no-referrer';
+        img.onerror = () => { img.remove(); f.classList.remove('has-photo'); };
+        f.appendChild(img);
+        f.classList.add('has-photo');
+      }
+    });
+  }));
+}
+const K = 32;
+
+// Population and visitor figures: real counts are cited from the most recent official
+// census where available (2022 All-India Tiger Estimation, 2022 rhino census, 2020/2025
+// Asiatic lion census). Where no official count is published, figures are reasonable
+// estimates marked "~" and should be read as indicative, not official.
+const DEFAULT_PARKS = [
+  { id:"campbellbay", name:"Campbell Bay National Park", loc:"Great Nicobar Island, Andaman & Nicobar Islands", state:"Andaman & Nicobar Islands", icon:"🐒",
+    blurb:"A national park near Great Nicobar Island, Andaman & Nicobar Islands, established 1992 and known for Nicobar treeshrew, crab-eating macaque.",
+    speciality:"Located near Great Nicobar Island in Andaman & Nicobar Islands, established in 1992. Notable wildlife includes Nicobar treeshrew, crab-eating macaque.",
+    creature:"Nicobar treeshrew", creatureIcon:"🐒", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Campbell Bay National Park" },
+  { id:"galathea", name:"Galathea National Park", loc:"Great Nicobar Island, Andaman & Nicobar Islands", state:"Andaman & Nicobar Islands", icon:"🌳",
+    blurb:"A national park near Great Nicobar Island, Andaman & Nicobar Islands, established 1992 and known for Nicobar pigeon, giant robber crab.",
+    speciality:"Located near Great Nicobar Island in Andaman & Nicobar Islands, established in 1992. Notable wildlife includes Nicobar pigeon, giant robber crab, megapode.",
+    creature:"Nicobar pigeon", creatureIcon:"🌳", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Galathea National Park" },
+  { id:"mgmarine", name:"Mahatma Gandhi Marine National Park", loc:"Wandoor, Andaman & Nicobar Islands", state:"Andaman & Nicobar Islands", icon:"🐠",
+    blurb:"A national park near Wandoor, Andaman & Nicobar Islands, established 1983 and known for coral reef, sea turtle.",
+    speciality:"Located near Wandoor in Andaman & Nicobar Islands, established in 1983. Notable wildlife includes coral reef, sea turtle.",
+    creature:"Coral reef", creatureIcon:"🐠", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Mahatma Gandhi Marine National Park" },
+  { id:"mountharriet", name:"Mount Harriet National Park", loc:"Mount Manipur, Andaman & Nicobar Islands", state:"Andaman & Nicobar Islands", icon:"🐊",
+    blurb:"A national park near Mount Manipur, Andaman & Nicobar Islands, established 1987 and known for Andaman wild pig, saltwater crocodile.",
+    speciality:"Located near Mount Manipur in Andaman & Nicobar Islands, established in 1987. Notable wildlife includes Andaman wild pig, saltwater crocodile, robber crab.",
+    creature:"Andaman wild pig", creatureIcon:"🐊", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Mount Harriet National Park" },
+  { id:"ranijhansi", name:"Rani Jhansi Marine National Park", loc:"Ritchie's Archipelago, Andaman & Nicobar Islands", state:"Andaman & Nicobar Islands", icon:"🐠",
+    blurb:"A national park near Ritchie's Archipelago, Andaman & Nicobar Islands, established 1996 and known for coral reef, reef fish.",
+    speciality:"Located near Ritchie's Archipelago in Andaman & Nicobar Islands, established in 1996. Notable wildlife includes coral reef, reef fish.",
+    creature:"Coral reef", creatureIcon:"🐠", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Rani Jhansi Marine National Park" },
+  { id:"saddlepeak", name:"Saddle Peak National Park", loc:"Saddle Peak, Andaman & Nicobar Islands", state:"Andaman & Nicobar Islands", icon:"🌳",
+    blurb:"A national park near Saddle Peak, Andaman & Nicobar Islands, established 1987 and known for Andaman wild pig, hill myna.",
+    speciality:"Located near Saddle Peak in Andaman & Nicobar Islands, established in 1987. Notable wildlife includes Andaman wild pig, hill myna.",
+    creature:"Andaman wild pig", creatureIcon:"🌳", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Saddle Peak National Park" },
+  { id:"northbutton", name:"North Button Island National Park", loc:"Button Islands, Andaman & Nicobar Islands", state:"Andaman & Nicobar Islands", icon:"🌳",
+    blurb:"A national park near Button Islands, Andaman & Nicobar Islands, known for seabird colonies.",
+    speciality:"Located near Button Islands in Andaman & Nicobar Islands. Notable wildlife includes seabird colonies.",
+    creature:"Seabird colonies", creatureIcon:"🌳", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"North Button Island National Park" },
+  { id:"middlebutton", name:"Middle Button Island National Park", loc:"Button Islands, Andaman & Nicobar Islands", state:"Andaman & Nicobar Islands", icon:"🌳",
+    blurb:"A national park near Button Islands, Andaman & Nicobar Islands, known for seabird colonies.",
+    speciality:"Located near Button Islands in Andaman & Nicobar Islands. Notable wildlife includes seabird colonies.",
+    creature:"Seabird colonies", creatureIcon:"🌳", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Middle Button Island National Park" },
+  { id:"southbutton", name:"South Button Island National Park", loc:"Button Islands, Andaman & Nicobar Islands", state:"Andaman & Nicobar Islands", icon:"🌳",
+    blurb:"A national park near Button Islands, Andaman & Nicobar Islands, known for seabird colonies.",
+    speciality:"Located near Button Islands in Andaman & Nicobar Islands. Notable wildlife includes seabird colonies.",
+    creature:"Seabird colonies", creatureIcon:"🌳", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"South Button Island National Park" },
+  { id:"papikonda", name:"Papikonda National Park", loc:"near Rajahmundry, Andhra Pradesh", state:"Andhra Pradesh", icon:"🐅",
+    blurb:"A national park near near Rajahmundry, Andhra Pradesh, established 2008 and known for Bengal tiger, leopard.",
+    speciality:"Located near near Rajahmundry in Andhra Pradesh, established in 2008. Notable wildlife includes Bengal tiger, leopard, rusty-spotted cat, king cobra.",
+    creature:"Bengal tiger", creatureIcon:"🐅", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Papikonda National Park" },
+  { id:"rajivgandhirameswaram", name:"Rajiv Gandhi National Park (Rameswaram)", loc:"near Rameswaram, Andhra Pradesh", state:"Andhra Pradesh", icon:"🌳",
+    blurb:"A national park near near Rameswaram, Andhra Pradesh, established 2005 and known for riverine wildlife.",
+    speciality:"Located near near Rameswaram in Andhra Pradesh, established in 2005. Notable wildlife includes riverine wildlife.",
+    creature:"Riverine wildlife", creatureIcon:"🌳", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Rajiv Gandhi National Park" },
+  { id:"sriventakeswara", name:"Sri Venkateswara National Park", loc:"Seshachalam & Tirumala Hills, Andhra Pradesh", state:"Andhra Pradesh", icon:"🦢",
+    blurb:"A national park near Seshachalam & Tirumala Hills, Andhra Pradesh, established 1989 and known for yellow-throated bulbul, white-rumped vulture.",
+    speciality:"Located near Seshachalam & Tirumala Hills in Andhra Pradesh, established in 1989. Notable wildlife includes yellow-throated bulbul, white-rumped vulture.",
+    creature:"Yellow-throated bulbul", creatureIcon:"🦢", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Sri Venkateswara National Park" },
+  { id:"mouling", name:"Mouling National Park", loc:"Siang Valley, Arunachal Pradesh", state:"Arunachal Pradesh", icon:"🐅",
+    blurb:"A national park near Siang Valley, Arunachal Pradesh, established 1986 and known for takin, red panda.",
+    speciality:"Located near Siang Valley in Arunachal Pradesh, established in 1986. Notable wildlife includes takin, red panda, Bengal tiger, goral.",
+    creature:"Takin", creatureIcon:"🐅", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Mouling National Park" },
+  { id:"namdapha", name:"Namdapha National Park", loc:"near Miao, Arunachal Pradesh", state:"Arunachal Pradesh", icon:"🐼",
+    blurb:"A national park near near Miao, Arunachal Pradesh, established 1983 and known for red panda, dhole.",
+    speciality:"Located near near Miao in Arunachal Pradesh, established in 1983. Notable wildlife includes red panda, dhole, Malayan sun bear, flying squirrel.",
+    creature:"Red panda", creatureIcon:"🐼", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Namdapha National Park" },
+  { id:"dibrusaikhowa", name:"Dibru-Saikhowa National Park", loc:"near Tinsukia, Assam", state:"Assam", icon:"🦌",
+    blurb:"A national park near near Tinsukia, Assam, established 1999 and known for feral horse, wild water buffalo.",
+    speciality:"Located near near Tinsukia in Assam, established in 1999. Notable wildlife includes feral horse, wild water buffalo, Ganges river dolphin.",
+    creature:"Feral horse", creatureIcon:"🦌", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Dibru-Saikhowa National Park" },
+  { id:"dihingpatkai", name:"Dihing Patkai National Park", loc:"near Digboi, Assam", state:"Assam", icon:"🌳",
+    blurb:"A national park near near Digboi, Assam, established 2021 and known for white-winged duck, slow loris.",
+    speciality:"Located near near Digboi in Assam, established in 2021. Notable wildlife includes white-winged duck, slow loris.",
+    creature:"White-winged duck", creatureIcon:"🌳", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Dihing Patkai National Park" },
+  { id:"raimona", name:"Raimona National Park", loc:"near Gossaigaon, Assam", state:"Assam", icon:"🐒",
+    blurb:"A national park near near Gossaigaon, Assam, established 2021 and known for golden langur.",
+    speciality:"Located near near Gossaigaon in Assam, established in 2021. Notable wildlife includes golden langur.",
+    creature:"Golden langur", creatureIcon:"🐒", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Raimona National Park" },
+  { id:"kaziranga", name:"Kaziranga National Park", loc:"near Kaliabor, Assam", state:"Assam", icon:"🐅",
+    blurb:"A national park near near Kaliabor, Assam, established 1974 and known for Indian rhinoceros, Royal Bengal tiger.",
+    speciality:"A UNESCO World Heritage floodplain holding over two-thirds of the world's one-horned rhinos.",
+    creature:"Indian rhinoceros", creatureIcon:"🐅", population:"~2,613 rhinos (2022 census)",
+    tDaily:"~800", tMonthly:"~22,000", tYearly:"~2.1 lakh", wikiTitle:"Kaziranga National Park" },
+  { id:"manas", name:"Manas National Park", loc:"near Barpeta Road, Assam", state:"Assam", icon:"🐘",
+    blurb:"A national park near near Barpeta Road, Assam, established 1990 and known for Indian elephant, wild water buffalo.",
+    speciality:"A UNESCO biosphere on the Bhutan border, a stronghold for species found almost nowhere else.",
+    creature:"Indian elephant", creatureIcon:"🐘", population:"~40 rhinos (reintroduced, est.)",
+    tDaily:"~300", tMonthly:"~8,500", tYearly:"~1 lakh", wikiTitle:"Manas National Park" },
+  { id:"nameri", name:"Nameri National Park", loc:"near Bhalukpong, Assam", state:"Assam", icon:"🐅",
+    blurb:"A national park near near Bhalukpong, Assam, established 1998 and known for Bengal tiger, clouded leopard.",
+    speciality:"Located near near Bhalukpong in Assam, established in 1998. Notable wildlife includes Bengal tiger, clouded leopard, fairy-bluebird.",
+    creature:"Bengal tiger", creatureIcon:"🐅", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Nameri National Park" },
+  { id:"orang", name:"Orang National Park", loc:"north bank of the Brahmaputra, Assam", state:"Assam", icon:"🦏",
+    blurb:"A national park near north bank of the Brahmaputra, Assam, established 1999 and known for Indian rhinoceros, pygmy hog.",
+    speciality:"Located near north bank of the Brahmaputra in Assam, established in 1999. Notable wildlife includes Indian rhinoceros, pygmy hog, Asian elephant, wild water buffalo.",
+    creature:"Indian rhinoceros", creatureIcon:"🦏", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Orang National Park" },
+  { id:"sikhnajwhwlao", name:"Sikhna Jwhwlao National Park", loc:"near Kokrajhar, Assam", state:"Assam", icon:"🦌",
+    blurb:"A national park near near Kokrajhar, Assam, established 2025 and known for pygmy hog, hog deer.",
+    speciality:"Located near near Kokrajhar in Assam, established in 2025. Notable wildlife includes pygmy hog, hog deer, Chinese pangolin.",
+    creature:"Pygmy hog", creatureIcon:"🦌", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Sikhna Jwhwlao National Park" },
+  { id:"valmiki", name:"Valmiki National Park", loc:"near Valmiki Nagar, Bihar", state:"Bihar", icon:"🐅",
+    blurb:"A national park near near Valmiki Nagar, Bihar, established 1978 and known for Bengal tiger, Indian gaur.",
+    speciality:"Located near near Valmiki Nagar in Bihar, established in 1978. Notable wildlife includes Bengal tiger, Indian gaur, Indian rhinoceros, Asian black bear.",
+    creature:"Bengal tiger", creatureIcon:"🐅", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Valmiki National Park" },
+  { id:"guruguasidas", name:"Guru Ghasidas National Park", loc:"near Ambikapur, Chhattisgarh", state:"Chhattisgarh", icon:"🌳",
+    blurb:"A national park near near Ambikapur, Chhattisgarh, established 1981 and known for sal forest wildlife.",
+    speciality:"Located near near Ambikapur in Chhattisgarh, established in 1981. Notable wildlife includes sal forest wildlife.",
+    creature:"Sal forest wildlife", creatureIcon:"🌳", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Guru Ghasidas National Park" },
+  { id:"indravati", name:"Indravati National Park", loc:"near Dantewada, Chhattisgarh", state:"Chhattisgarh", icon:"🐅",
+    blurb:"A national park near near Dantewada, Chhattisgarh, established 1982 and known for wild buffalo, tiger.",
+    speciality:"Located near near Dantewada in Chhattisgarh, established in 1982. Notable wildlife includes wild buffalo, tiger, hill myna.",
+    creature:"Wild buffalo", creatureIcon:"🐅", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Indravati National Park" },
+  { id:"kangerghati", name:"Kanger Ghati National Park", loc:"near Jagdalpur, Chhattisgarh", state:"Chhattisgarh", icon:"🌳",
+    blurb:"A national park near near Jagdalpur, Chhattisgarh, established 1982 and known for limestone cave fauna.",
+    speciality:"Located near near Jagdalpur in Chhattisgarh, established in 1982. Notable wildlife includes limestone cave fauna.",
+    creature:"Limestone cave fauna", creatureIcon:"🌳", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Kanger Ghati National Park" },
+  { id:"mollem", name:"Mollem National Park", loc:"near Molem, Goa", state:"Goa", icon:"🌳",
+    blurb:"A national park near near Molem, Goa, established 1978 and known for Dudhsagar Falls wildlife.",
+    speciality:"Located near near Molem in Goa, established in 1978. Notable wildlife includes Dudhsagar Falls wildlife.",
+    creature:"Dudhsagar Falls wildlife", creatureIcon:"🌳", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Mollem National Park" },
+  { id:"blackbuck", name:"Blackbuck National Park (Velavadar)", loc:"near Bhavnagar, Gujarat", state:"Gujarat", icon:"🦌",
+    blurb:"A national park near near Bhavnagar, Gujarat, established 1976 and known for blackbuck, Indian grey wolf.",
+    speciality:"Located near near Bhavnagar in Gujarat, established in 1976. Notable wildlife includes blackbuck, Indian grey wolf, striped hyena, lesser florican.",
+    creature:"Blackbuck", creatureIcon:"🦌", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Blackbuck National Park" },
+  { id:"gir", name:"Gir Forest National Park", loc:"near Sasan Gir, Gujarat", state:"Gujarat", icon:"🦁",
+    blurb:"A national park near near Sasan Gir, Gujarat, established 1965 and known for Asiatic lion, Indian leopard.",
+    speciality:"Dry deciduous teak forest — the only place on Earth where Asiatic lions still roam wild.",
+    creature:"Asiatic lion", creatureIcon:"🦁", population:"~674 lions (2020 census)",
+    tDaily:"~1,000", tMonthly:"~29,000", tYearly:"~3.5 lakh", wikiTitle:"Gir Forest National Park" },
+  { id:"gulfkutch", name:"Marine National Park (Gulf of Kutch)", loc:"near Dwarka, Gujarat", state:"Gujarat", icon:"🐠",
+    blurb:"A national park near near Dwarka, Gujarat, established 1982 and known for coral reef, green sea turtle.",
+    speciality:"Located near near Dwarka in Gujarat, established in 1982. Notable wildlife includes coral reef, green sea turtle, jellyfish.",
+    creature:"Coral reef", creatureIcon:"🐠", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Marine National Park" },
+  { id:"vansda", name:"Vansda National Park", loc:"near Vansda, Gujarat", state:"Gujarat", icon:"🐆",
+    blurb:"A national park near near Vansda, Gujarat, established 1979 and known for leopard, dhole.",
+    speciality:"Located near near Vansda in Gujarat, established in 1979. Notable wildlife includes leopard, dhole, hanuman langur.",
+    creature:"Leopard", creatureIcon:"🐆", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Vansda National Park" },
+  { id:"kalesar", name:"Kalesar National Park", loc:"Sivalik Hills, Haryana", state:"Haryana", icon:"🌳",
+    blurb:"A national park near Sivalik Hills, Haryana, established 2003 and known for Sivalik forest wildlife.",
+    speciality:"Located near Sivalik Hills in Haryana, established in 2003. Notable wildlife includes Sivalik forest wildlife.",
+    creature:"Sivalik forest wildlife", creatureIcon:"🌳", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Kalesar National Park" },
+  { id:"sultanpur", name:"Sultanpur National Park", loc:"near Gurugram, Haryana", state:"Haryana", icon:"🦢",
+    blurb:"A national park near near Gurugram, Haryana, established 1991 and known for spoonbill, migratory waterbirds.",
+    speciality:"Located near near Gurugram in Haryana, established in 1991. Notable wildlife includes spoonbill, migratory waterbirds.",
+    creature:"Spoonbill", creatureIcon:"🦢", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Sultanpur National Park" },
+  { id:"ghnp", name:"Great Himalayan National Park", loc:"near Banjar, Himachal Pradesh", state:"Himachal Pradesh", icon:"🐆",
+    blurb:"A national park near near Banjar, Himachal Pradesh, established 1985 and known for bharal, snow leopard.",
+    speciality:"A UNESCO high-altitude wilderness of glaciers, alpine meadow and pine forest.",
+    creature:"Bharal", creatureIcon:"🐆", population:"~15 snow leopards (est.)",
+    tDaily:"~100", tMonthly:"~2,900", tYearly:"~35,000", wikiTitle:"Great Himalayan National Park" },
+  { id:"inderkilla", name:"Inderkilla National Park", loc:"near Manali, Himachal Pradesh", state:"Himachal Pradesh", icon:"🌳",
+    blurb:"A national park near near Manali, Himachal Pradesh, established 2010 and known for alpine wildlife.",
+    speciality:"Located near near Manali in Himachal Pradesh, established in 2010. Notable wildlife includes alpine wildlife.",
+    creature:"Alpine wildlife", creatureIcon:"🌳", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Inderkilla National Park" },
+  { id:"khirganga", name:"Khirganga National Park", loc:"near Kasol, Himachal Pradesh", state:"Himachal Pradesh", icon:"🌳",
+    blurb:"A national park near near Kasol, Himachal Pradesh, established 2010 and known for alpine forest species.",
+    speciality:"Located near near Kasol in Himachal Pradesh, established in 2010. Notable wildlife includes alpine forest species.",
+    creature:"Alpine forest species", creatureIcon:"🌳", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Khirganga National Park" },
+  { id:"pinvalley", name:"Pin Valley National Park", loc:"near Kaza, Himachal Pradesh", state:"Himachal Pradesh", icon:"🐆",
+    blurb:"A national park near near Kaza, Himachal Pradesh, established 1987 and known for snow leopard, Himalayan snowcock.",
+    speciality:"Located near near Kaza in Himachal Pradesh, established in 1987. Notable wildlife includes snow leopard, Himalayan snowcock, chough.",
+    creature:"Snow leopard", creatureIcon:"🐆", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Pin Valley National Park" },
+  { id:"simbalbara", name:"Simbalbara National Park", loc:"near Paonta Sahib, Himachal Pradesh", state:"Himachal Pradesh", icon:"🦌",
+    blurb:"A national park near near Paonta Sahib, Himachal Pradesh, established 2010 and known for goral, sambar deer.",
+    speciality:"Located near near Paonta Sahib in Himachal Pradesh, established in 2010. Notable wildlife includes goral, sambar deer, chital.",
+    creature:"Goral", creatureIcon:"🦌", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Simbalbara National Park" },
+  { id:"dachigam", name:"Dachigam National Park", loc:"near Srinagar, Jammu & Kashmir", state:"Jammu & Kashmir", icon:"🐆",
+    blurb:"A national park near near Srinagar, Jammu & Kashmir, established 1981 and known for hangul, leopard cat.",
+    speciality:"Located near near Srinagar in Jammu & Kashmir, established in 1981. Notable wildlife includes hangul, leopard cat, musk deer, snow leopard.",
+    creature:"Hangul", creatureIcon:"🐆", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Dachigam National Park" },
+  { id:"kishtwar", name:"Kishtwar National Park", loc:"near Kishtwar, Jammu & Kashmir", state:"Jammu & Kashmir", icon:"🐻",
+    blurb:"A national park near near Kishtwar, Jammu & Kashmir, established 1981 and known for Himalayan snowcock, brown bear.",
+    speciality:"Located near near Kishtwar in Jammu & Kashmir, established in 1981. Notable wildlife includes Himalayan snowcock, brown bear.",
+    creature:"Himalayan snowcock", creatureIcon:"🐻", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Kishtwar National Park" },
+  { id:"kazinag", name:"Kazinag National Park", loc:"near Baramulla, Jammu & Kashmir", state:"Jammu & Kashmir", icon:"🦌",
+    blurb:"A national park near near Baramulla, Jammu & Kashmir, established 1992 and known for markhor, musk deer.",
+    speciality:"Located near near Baramulla in Jammu & Kashmir, established in 1992. Notable wildlife includes markhor, musk deer, golden eagle.",
+    creature:"Markhor", creatureIcon:"🦌", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Kazinag National Park" },
+  { id:"cityforestsalimali", name:"City Forest National Park (Salim Ali)", loc:"near Srinagar, Jammu & Kashmir", state:"Jammu & Kashmir", icon:"🐻",
+    blurb:"A national park near near Srinagar, Jammu & Kashmir, established 1986 and known for hangul, brown bear.",
+    speciality:"Located near near Srinagar in Jammu & Kashmir, established in 1986. Notable wildlife includes hangul, brown bear, paradise flycatcher.",
+    creature:"Hangul", creatureIcon:"🐻", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"City Forest National Park" },
+  { id:"betla", name:"Betla National Park", loc:"near Medininagar, Jharkhand", state:"Jharkhand", icon:"🐅",
+    blurb:"A national park near near Medininagar, Jharkhand, established 1974 and known for tiger, Indian bison.",
+    speciality:"Located near near Medininagar in Jharkhand, established in 1974. Notable wildlife includes tiger, Indian bison, elephant, leopard.",
+    creature:"Tiger", creatureIcon:"🐅", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Betla National Park" },
+  { id:"anshi", name:"Anshi National Park", loc:"Western Ghats, Karnataka", state:"Karnataka", icon:"🐅",
+    blurb:"A national park near Western Ghats, Karnataka, known for great hornbill, tiger.",
+    speciality:"Located near Western Ghats in Karnataka. Notable wildlife includes great hornbill, tiger, black panther.",
+    creature:"Great hornbill", creatureIcon:"🐅", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Anshi National Park" },
+  { id:"bandipur", name:"Bandipur National Park", loc:"near Gundlupet, Karnataka", state:"Karnataka", icon:"🐅",
+    blurb:"A national park near near Gundlupet, Karnataka, known for Bengal tiger, gaur.",
+    speciality:"Part of the Nilgiri Biosphere, one of South India's most reliable tiger and elephant habitats.",
+    creature:"Bengal tiger", creatureIcon:"🐅", population:"~150 tigers (2022 census)",
+    tDaily:"~1,000", tMonthly:"~29,000", tYearly:"~3.5 lakh", wikiTitle:"Bandipur National Park" },
+  { id:"bannerghatta", name:"Bannerghatta National Park", loc:"near Bengaluru, Karnataka", state:"Karnataka", icon:"🐅",
+    blurb:"A national park near near Bengaluru, Karnataka, known for tiger, sloth bear.",
+    speciality:"Located near near Bengaluru in Karnataka. Notable wildlife includes tiger, sloth bear, elephant, leopard.",
+    creature:"Tiger", creatureIcon:"🐅", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Bannerghatta National Park" },
+  { id:"kudremukh", name:"Kudremukh National Park", loc:"Chikmagalur district, Karnataka", state:"Karnataka", icon:"🌳",
+    blurb:"A national park near Chikmagalur district, Karnataka, known for Western Ghats rainforest wildlife.",
+    speciality:"Located near Chikmagalur district in Karnataka. Notable wildlife includes Western Ghats rainforest wildlife.",
+    creature:"Western Ghats rainforest wildlife", creatureIcon:"🌳", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Kudremukh National Park" },
+  { id:"nagarhole", name:"Nagarhole National Park (Rajiv Gandhi)", loc:"near Kabini, Karnataka", state:"Karnataka", icon:"🐅",
+    blurb:"A national park near near Kabini, Karnataka, known for Bengal tiger, Indian leopard.",
+    speciality:"Located near near Kabini in Karnataka. Notable wildlife includes Bengal tiger, Indian leopard, dhole, sloth bear.",
+    creature:"Bengal tiger", creatureIcon:"🐅", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Nagarhole National Park" },
+  { id:"anamudishola", name:"Anamudi Shola National Park", loc:"Munnar, Kerala", state:"Kerala", icon:"🐅",
+    blurb:"A national park near Munnar, Kerala, known for elephant, tiger.",
+    speciality:"Located near Munnar in Kerala. Notable wildlife includes elephant, tiger, Nilgiri tahr, gaur.",
+    creature:"Elephant", creatureIcon:"🐅", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Anamudi Shola National Park" },
+  { id:"eravikulam", name:"Eravikulam National Park", loc:"near Munnar, Kerala", state:"Kerala", icon:"🐒",
+    blurb:"A national park near near Munnar, Kerala, known for Nilgiri tahr, gaur.",
+    speciality:"Located near near Munnar in Kerala. Notable wildlife includes Nilgiri tahr, gaur, Indian muntjac.",
+    creature:"Nilgiri tahr", creatureIcon:"🐒", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Eravikulam National Park" },
+  { id:"mathikettanshola", name:"Mathikettan Shola National Park", loc:"Idukki district, Kerala", state:"Kerala", icon:"🐘",
+    blurb:"A national park near Idukki district, Kerala, known for elephant.",
+    speciality:"Located near Idukki district in Kerala. Notable wildlife includes elephant.",
+    creature:"Elephant", creatureIcon:"🐘", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Mathikettan Shola National Park" },
+  { id:"pambadumshola", name:"Pambadum Shola National Park", loc:"Idukki district, Kerala", state:"Kerala", icon:"🐒",
+    blurb:"A national park near Idukki district, Kerala, known for Nilgiri marten, Nilgiri langur.",
+    speciality:"Located near Idukki district in Kerala. Notable wildlife includes Nilgiri marten, Nilgiri langur.",
+    creature:"Nilgiri marten", creatureIcon:"🐒", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Pambadum Shola National Park" },
+  { id:"periyar", name:"Periyar National Park", loc:"Thekkady, Kerala", state:"Kerala", icon:"🐘",
+    blurb:"A national park near Thekkady, Kerala, known for Asian elephant, Malabar grey hornbill.",
+    speciality:"Western Ghats hill forest built around a scenic boating lake, famed for its elephant herds.",
+    creature:"Asian elephant", creatureIcon:"🐘", population:"~800 elephants (est.)",
+    tDaily:"~1,500", tMonthly:"~44,000", tYearly:"~5 lakh", wikiTitle:"Periyar National Park" },
+  { id:"silentvalley", name:"Silent Valley National Park", loc:"Palakkad district, Kerala", state:"Kerala", icon:"🦁",
+    blurb:"A national park near Palakkad district, Kerala, known for lion-tailed macaque, Indian bison.",
+    speciality:"One of the last untouched evergreen rainforests in India, with no roads inside its core.",
+    creature:"Lion-tailed macaque", creatureIcon:"🦁", population:"~200 lion-tailed macaques (est.)",
+    tDaily:"~50", tMonthly:"~1,500", tYearly:"~18,000", wikiTitle:"Silent Valley National Park" },
+  { id:"hemis", name:"Hemis National Park", loc:"near Leh, Ladakh", state:"Ladakh", icon:"🐆",
+    blurb:"A national park near near Leh, Ladakh, known for snow leopard.",
+    speciality:"India's largest national park — a cold-desert stronghold with one of the highest snow leopard densities anywhere.",
+    creature:"Snow leopard", creatureIcon:"🐆", population:"~200 snow leopards (est.)",
+    tDaily:"~150", tMonthly:"~4,300", tYearly:"~50,000", wikiTitle:"Hemis National Park" },
+  { id:"bandhavgarh", name:"Bandhavgarh National Park", loc:"Umaria district, Madhya Pradesh", state:"Madhya Pradesh", icon:"🐅",
+    blurb:"A national park near Umaria district, Madhya Pradesh, established 1968 and known for Bengal tiger, striped hyena.",
+    speciality:"India's highest tiger density, spread around a hilltop fort with 2,000-year-old caves.",
+    creature:"Bengal tiger", creatureIcon:"🐅", population:"~135 tigers (2022 census)",
+    tDaily:"~1,200", tMonthly:"~35,000", tYearly:"~4.3 lakh", wikiTitle:"Bandhavgarh National Park" },
+  { id:"dinosaurfossils", name:"Dinosaur Fossils National Park", loc:"Dhar district, Madhya Pradesh", state:"Madhya Pradesh", icon:"🦴",
+    blurb:"A national park near Dhar district, Madhya Pradesh, established 2011 and known for fossil deposits.",
+    speciality:"Located near Dhar district in Madhya Pradesh, established in 2011. Notable wildlife includes fossil deposits.",
+    creature:"Fossil deposits", creatureIcon:"🦴", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Dinosaur Fossils National Park" },
+  { id:"ghughuafossil", name:"Ghughua Fossil National Park", loc:"Dindori district, Madhya Pradesh", state:"Madhya Pradesh", icon:"🦴",
+    blurb:"A national park near Dindori district, Madhya Pradesh, established 1983 and known for fossil deposits.",
+    speciality:"Located near Dindori district in Madhya Pradesh, established in 1983. Notable wildlife includes fossil deposits.",
+    creature:"Fossil deposits", creatureIcon:"🦴", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Ghughua Fossil National Park" },
+  { id:"kanha", name:"Kanha National Park", loc:"Mandla & Balaghat districts, Madhya Pradesh", state:"Madhya Pradesh", icon:"🐅",
+    blurb:"A national park near Mandla & Balaghat districts, Madhya Pradesh, established 1955 and known for barasingha, Bengal tiger.",
+    speciality:"Sal and bamboo forest that inspired Kipling's Jungle Book; brought the barasingha back from near-extinction.",
+    creature:"Barasingha", creatureIcon:"🐅", population:"~105 tigers · ~800 barasingha (est.)",
+    tDaily:"~900", tMonthly:"~26,000", tYearly:"~3.2 lakh", wikiTitle:"Kanha National Park" },
+  { id:"kuno", name:"Kuno National Park", loc:"Sheopur & Morena districts, Madhya Pradesh", state:"Madhya Pradesh", icon:"🦁",
+    blurb:"A national park near Sheopur & Morena districts, Madhya Pradesh, established 2018 and known for Asiatic lion (reintroduction project), cheetah.",
+    speciality:"Located near Sheopur & Morena districts in Madhya Pradesh, established in 2018. Notable wildlife includes Asiatic lion (reintroduction project), cheetah.",
+    creature:"Asiatic lion (reintroduction project)", creatureIcon:"🦁", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Kuno National Park" },
+  { id:"madhav", name:"Madhav National Park", loc:"Shivpuri district, Madhya Pradesh", state:"Madhya Pradesh", icon:"🦌",
+    blurb:"A national park near Shivpuri district, Madhya Pradesh, established 1959 and known for chital, wetland birds.",
+    speciality:"Located near Shivpuri district in Madhya Pradesh, established in 1959. Notable wildlife includes chital, wetland birds.",
+    creature:"Chital", creatureIcon:"🦌", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Madhav National Park" },
+  { id:"panna", name:"Panna National Park", loc:"Panna district, Madhya Pradesh", state:"Madhya Pradesh", icon:"🐅",
+    blurb:"A national park near Panna district, Madhya Pradesh, established 1981 and known for gharial, tiger.",
+    speciality:"Located near Panna district in Madhya Pradesh, established in 1981. Notable wildlife includes gharial, tiger.",
+    creature:"Gharial", creatureIcon:"🐅", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Panna National Park" },
+  { id:"pench", name:"Pench National Park", loc:"near Seoni, Madhya Pradesh", state:"Madhya Pradesh", icon:"🐅",
+    blurb:"A national park near near Seoni, Madhya Pradesh, established 1975 and known for Bengal tiger, leopard.",
+    speciality:"Teak forest split by the Pench river — one of two landscapes credited as Kipling's Jungle Book setting.",
+    creature:"Bengal tiger", creatureIcon:"🐅", population:"~77 tigers (est.)",
+    tDaily:"~800", tMonthly:"~23,000", tYearly:"~2.8 lakh", wikiTitle:"Pench National Park" },
+  { id:"sanjay", name:"Sanjay National Park", loc:"Narmada Valley, Madhya Pradesh", state:"Madhya Pradesh", icon:"🐅",
+    blurb:"A national park near Narmada Valley, Madhya Pradesh, established 1981 and known for tiger, gaur.",
+    speciality:"Located near Narmada Valley in Madhya Pradesh, established in 1981. Notable wildlife includes tiger, gaur.",
+    creature:"Tiger", creatureIcon:"🐅", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Sanjay National Park" },
+  { id:"satpura", name:"Satpura National Park", loc:"Narmadapuram district, Madhya Pradesh", state:"Madhya Pradesh", icon:"🐆",
+    blurb:"A national park near Narmadapuram district, Madhya Pradesh, established 1981 and known for Indian bison, leopard.",
+    speciality:"Located near Narmadapuram district in Madhya Pradesh, established in 1981. Notable wildlife includes Indian bison, leopard, sloth bear.",
+    creature:"Indian bison", creatureIcon:"🐆", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Satpura National Park" },
+  { id:"vanvihar", name:"Van Vihar National Park", loc:"Bhopal, Madhya Pradesh", state:"Madhya Pradesh", icon:"🐅",
+    blurb:"A national park near Bhopal, Madhya Pradesh, established 1979 and known for tiger, leopard.",
+    speciality:"Located near Bhopal in Madhya Pradesh, established in 1979. Notable wildlife includes tiger, leopard, deer species.",
+    creature:"Tiger", creatureIcon:"🐅", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Van Vihar National Park" },
+  { id:"chandoli", name:"Chandoli National Park", loc:"Sahyadri range, Maharashtra", state:"Maharashtra", icon:"🐅",
+    blurb:"A national park near Sahyadri range, Maharashtra, established 2004 and known for tiger, gaur.",
+    speciality:"Located near Sahyadri range in Maharashtra, established in 2004. Notable wildlife includes tiger, gaur, leopard.",
+    creature:"Tiger", creatureIcon:"🐅", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Chandoli National Park" },
+  { id:"gugamal", name:"Gugamal National Park", loc:"Melghat, Maharashtra", state:"Maharashtra", icon:"🐅",
+    blurb:"A national park near Melghat, Maharashtra, known for tiger, sloth bear.",
+    speciality:"Located near Melghat in Maharashtra. Notable wildlife includes tiger, sloth bear.",
+    creature:"Tiger", creatureIcon:"🐅", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Gugamal National Park" },
+  { id:"nawegaon", name:"Nawegaon National Park", loc:"Gondia district, Maharashtra", state:"Maharashtra", icon:"🐆",
+    blurb:"A national park near Gondia district, Maharashtra, known for wetland birds, leopard.",
+    speciality:"Located near Gondia district in Maharashtra. Notable wildlife includes wetland birds, leopard.",
+    creature:"Wetland birds", creatureIcon:"🐆", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Nawegaon National Park" },
+  { id:"sanjaygandhi", name:"Sanjay Gandhi National Park (Borivili)", loc:"Mumbai, Maharashtra", state:"Maharashtra", icon:"🐆",
+    blurb:"A national park near Mumbai, Maharashtra, known for leopard, rhesus macaque.",
+    speciality:"Located near Mumbai in Maharashtra. Notable wildlife includes leopard, rhesus macaque, spotted deer.",
+    creature:"Leopard", creatureIcon:"🐆", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Sanjay Gandhi National Park" },
+  { id:"tadoba", name:"Tadoba Andhari National Park", loc:"Chandrapur district, Maharashtra", state:"Maharashtra", icon:"🐅",
+    blurb:"A national park near Chandrapur district, Maharashtra, known for Bengal tiger, gaur.",
+    speciality:"Maharashtra's oldest and largest tiger reserve, centred on the scenic Tadoba lake.",
+    creature:"Bengal tiger", creatureIcon:"🐅", population:"~97 tigers (est.)",
+    tDaily:"~1,100", tMonthly:"~32,000", tYearly:"~3.8 lakh", wikiTitle:"Tadoba Andhari National Park" },
+  { id:"penchjawaharlal", name:"Pench National Park (Jawaharlal Nehru)", loc:"near Nagpur, Maharashtra", state:"Maharashtra", icon:"🐅",
+    blurb:"A national park near near Nagpur, Maharashtra, known for Bengal tiger, leopard.",
+    speciality:"Located near near Nagpur in Maharashtra. Notable wildlife includes Bengal tiger, leopard.",
+    creature:"Bengal tiger", creatureIcon:"🐅", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Pench National Park" },
+  { id:"keibullamjao", name:"Keibul Lamjao National Park", loc:"Loktak Lake, Manipur", state:"Manipur", icon:"🦌",
+    blurb:"A national park near Loktak Lake, Manipur, known for sangai (brow-antlered deer).",
+    speciality:"Located near Loktak Lake in Manipur. Notable wildlife includes sangai (brow-antlered deer).",
+    creature:"Sangai (brow-antlered deer)", creatureIcon:"🦌", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Keibul Lamjao National Park" },
+  { id:"shiroi", name:"Shiroi National Park", loc:"Ukhrul district, Manipur", state:"Manipur", icon:"🐅",
+    blurb:"A national park near Ukhrul district, Manipur, known for tragopan, tiger.",
+    speciality:"Located near Ukhrul district in Manipur. Notable wildlife includes tragopan, tiger, leopard.",
+    creature:"Tragopan", creatureIcon:"🐅", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Shiroi National Park" },
+  { id:"balphakram", name:"Balphakram National Park", loc:"south of Garo Hills, Meghalaya", state:"Meghalaya", icon:"🐘",
+    blurb:"A national park near south of Garo Hills, Meghalaya, known for red panda, wild water buffalo.",
+    speciality:"Located near south of Garo Hills in Meghalaya. Notable wildlife includes red panda, wild water buffalo, elephant.",
+    creature:"Red panda", creatureIcon:"🐘", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Balphakram National Park" },
+  { id:"nokrek", name:"Nokrek National Park", loc:"near Tura Peak, Meghalaya", state:"Meghalaya", icon:"🐼",
+    blurb:"A national park near near Tura Peak, Meghalaya, known for red panda, hoolock gibbon.",
+    speciality:"Located near near Tura Peak in Meghalaya. Notable wildlife includes red panda, hoolock gibbon.",
+    creature:"Red panda", creatureIcon:"🐼", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Nokrek National Park" },
+  { id:"murlen", name:"Murlen National Park", loc:"near Champhai, Mizoram", state:"Mizoram", icon:"🐒",
+    blurb:"A national park near near Champhai, Mizoram, known for hoolock gibbon, hornbill species.",
+    speciality:"Located near near Champhai in Mizoram. Notable wildlife includes hoolock gibbon, hornbill species.",
+    creature:"Hoolock gibbon", creatureIcon:"🐒", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Murlen National Park" },
+  { id:"phawngpui", name:"Phawngpui Blue Mountain National Park", loc:"Lawngtlai district, Mizoram", state:"Mizoram", icon:"🌳",
+    blurb:"A national park near Lawngtlai district, Mizoram, known for Blue Mountain wildlife.",
+    speciality:"Located near Lawngtlai district in Mizoram. Notable wildlife includes Blue Mountain wildlife.",
+    creature:"Blue Mountain wildlife", creatureIcon:"🌳", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Phawngpui Blue Mountain National Park" },
+  { id:"ntangki", name:"Ntangki National Park", loc:"Peren district, Nagaland", state:"Nagaland", icon:"🐅",
+    blurb:"A national park near Peren district, Nagaland, known for hoolock gibbon, golden langur.",
+    speciality:"Located near Peren district in Nagaland. Notable wildlife includes hoolock gibbon, golden langur, hornbill, tiger.",
+    creature:"Hoolock gibbon", creatureIcon:"🐅", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Ntangki National Park" },
+  { id:"bhitarkanika", name:"Bhitarkanika National Park", loc:"Kendrapara district, Odisha", state:"Odisha", icon:"🐊",
+    blurb:"A national park near Kendrapara district, Odisha, known for saltwater crocodile, Indian python.",
+    speciality:"Located near Kendrapara district in Odisha. Notable wildlife includes saltwater crocodile, Indian python, mangrove birds.",
+    creature:"Saltwater crocodile", creatureIcon:"🐊", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Bhitarkanika National Park" },
+  { id:"simlipal", name:"Simlipal National Park", loc:"Mayurbhanj district, Odisha", state:"Odisha", icon:"🐅",
+    blurb:"A national park near Mayurbhanj district, Odisha, known for tiger, leopard.",
+    speciality:"Located near Mayurbhanj district in Odisha. Notable wildlife includes tiger, leopard, Asian elephant, gaur.",
+    creature:"Tiger", creatureIcon:"🐅", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Simlipal National Park" },
+  { id:"desertnp", name:"Desert National Park", loc:"near Jaisalmer, Rajasthan", state:"Rajasthan", icon:"🦌",
+    blurb:"A national park near near Jaisalmer, Rajasthan, known for chinkara, great Indian bustard.",
+    speciality:"Located near near Jaisalmer in Rajasthan. Notable wildlife includes chinkara, great Indian bustard, desert cat.",
+    creature:"Chinkara", creatureIcon:"🦌", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Desert National Park" },
+  { id:"keoladeo", name:"Keoladeo Ghana National Park", loc:"near Bharatpur, Rajasthan", state:"Rajasthan", icon:"🦢",
+    blurb:"A national park near near Bharatpur, Rajasthan, known for painted stork, migratory waterbirds.",
+    speciality:"A man-made wetland ranked among the world's great bird sanctuaries.",
+    creature:"Painted stork", creatureIcon:"🦢", population:"~370 bird species recorded",
+    tDaily:"~1,000", tMonthly:"~28,000", tYearly:"~3.4 lakh", wikiTitle:"Keoladeo Ghana National Park" },
+  { id:"mukundara", name:"Mukundara Hills National Park", loc:"near Kota, Rajasthan", state:"Rajasthan", icon:"🐅",
+    blurb:"A national park near near Kota, Rajasthan, known for tiger, chinkara.",
+    speciality:"Located near near Kota in Rajasthan. Notable wildlife includes tiger, chinkara.",
+    creature:"Tiger", creatureIcon:"🐅", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Mukundara Hills National Park" },
+  { id:"ranthambore", name:"Ranthambore National Park", loc:"near Sawai Madhopur, Rajasthan", state:"Rajasthan", icon:"🐅",
+    blurb:"A national park near near Sawai Madhopur, Rajasthan, known for Bengal tiger, leopard.",
+    speciality:"A former royal hunting ground built around a 10th-century fort overlooking the reserve.",
+    creature:"Bengal tiger", creatureIcon:"🐅", population:"~75 tigers (est.)",
+    tDaily:"~2,000", tMonthly:"~58,000", tYearly:"~7 lakh", wikiTitle:"Ranthambore National Park" },
+  { id:"sariska", name:"Sariska Tiger Reserve", loc:"Alwar district, Rajasthan", state:"Rajasthan", icon:"🐅",
+    blurb:"A national park near Alwar district, Rajasthan, known for Bengal tiger, striped hyena.",
+    speciality:"A dry deciduous reserve rebuilt from zero tigers in 2004 through reintroduction, dotted with ancient temple ruins.",
+    creature:"Bengal tiger", creatureIcon:"🐅", population:"~30 tigers (est.)",
+    tDaily:"~600", tMonthly:"~17,000", tYearly:"~2 lakh", wikiTitle:"Sariska Tiger Reserve" },
+  { id:"khangchendzonga", name:"Khangchendzonga National Park", loc:"near Yuksom, Sikkim", state:"Sikkim", icon:"🐆",
+    blurb:"A national park near near Yuksom, Sikkim, known for musk deer, snow leopard.",
+    speciality:"Located near near Yuksom in Sikkim. Notable wildlife includes musk deer, snow leopard, Himalayan tahr, dhole.",
+    creature:"Musk deer", creatureIcon:"🐆", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Khangchendzonga National Park" },
+  { id:"indiragandhi", name:"Indira Gandhi Sanctuary and National Park (Annamalai)", loc:"Anamalai Hills, Tamil Nadu", state:"Tamil Nadu", icon:"🐅",
+    blurb:"A national park near Anamalai Hills, Tamil Nadu, known for tiger, leopard.",
+    speciality:"Located near Anamalai Hills in Tamil Nadu. Notable wildlife includes tiger, leopard, elephant, dhole.",
+    creature:"Tiger", creatureIcon:"🐅", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Indira Gandhi Sanctuary and National Park" },
+  { id:"guindy", name:"Guindy National Park", loc:"Chennai, Tamil Nadu", state:"Tamil Nadu", icon:"🦌",
+    blurb:"A national park near Chennai, Tamil Nadu, known for chital, blackbuck.",
+    speciality:"Located near Chennai in Tamil Nadu. Notable wildlife includes chital, blackbuck, jackal.",
+    creature:"Chital", creatureIcon:"🦌", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Guindy National Park" },
+  { id:"gulfofmannar", name:"Gulf of Mannar Marine National Park", loc:"near Ramanathapuram, Tamil Nadu", state:"Tamil Nadu", icon:"🐠",
+    blurb:"A national park near near Ramanathapuram, Tamil Nadu, known for whale species, coral islands.",
+    speciality:"Located near near Ramanathapuram in Tamil Nadu. Notable wildlife includes whale species, coral islands.",
+    creature:"Whale species", creatureIcon:"🐠", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Gulf of Mannar Marine National Park" },
+  { id:"mudumalai", name:"Mudumalai National Park", loc:"Nilgiri district, Tamil Nadu", state:"Tamil Nadu", icon:"🐅",
+    blurb:"A national park near Nilgiri district, Tamil Nadu, known for Bengal tiger, Indian leopard.",
+    speciality:"Located near Nilgiri district in Tamil Nadu. Notable wildlife includes Bengal tiger, Indian leopard, dhole, Indian elephant.",
+    creature:"Bengal tiger", creatureIcon:"🐅", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Mudumalai National Park" },
+  { id:"mukurthi", name:"Mukurthi National Park", loc:"Nilgiri Hills, Tamil Nadu", state:"Tamil Nadu", icon:"🐒",
+    blurb:"A national park near Nilgiri Hills, Tamil Nadu, known for Nilgiri tahr.",
+    speciality:"Located near Nilgiri Hills in Tamil Nadu. Notable wildlife includes Nilgiri tahr.",
+    creature:"Nilgiri tahr", creatureIcon:"🐒", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Mukurthi National Park" },
+  { id:"mahavirharina", name:"Mahavir Harina Vanasthali National Park", loc:"Hyderabad, Telangana", state:"Telangana", icon:"🦌",
+    blurb:"A national park near Hyderabad, Telangana, known for blackbuck, chital.",
+    speciality:"Located near Hyderabad in Telangana. Notable wildlife includes blackbuck, chital, wild boar.",
+    creature:"Blackbuck", creatureIcon:"🦌", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Mahavir Harina Vanasthali National Park" },
+  { id:"kasubrahmananda", name:"Kasu Brahmananda Reddy National Park", loc:"Hyderabad, Telangana", state:"Telangana", icon:"🦢",
+    blurb:"A national park near Hyderabad, Telangana, known for peacock.",
+    speciality:"Located near Hyderabad in Telangana. Notable wildlife includes peacock.",
+    creature:"Peacock", creatureIcon:"🦢", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Kasu Brahmananda Reddy National Park" },
+  { id:"mrugavani", name:"Mrugavani National Park", loc:"near Hyderabad, Telangana", state:"Telangana", icon:"🦌",
+    blurb:"A national park near near Hyderabad, Telangana, known for chital, sambar.",
+    speciality:"Located near near Hyderabad in Telangana. Notable wildlife includes chital, sambar, wild boar.",
+    creature:"Chital", creatureIcon:"🦌", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Mrugavani National Park" },
+  { id:"bisonrajbari", name:"Bison (Rajbari) National Park", loc:"near Agartala, Tripura", state:"Tripura", icon:"🦌",
+    blurb:"A national park near near Agartala, Tripura, known for Indian bison.",
+    speciality:"Located near near Agartala in Tripura. Notable wildlife includes Indian bison.",
+    creature:"Indian bison", creatureIcon:"🦌", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Bison" },
+  { id:"cloudedleopardtn", name:"Clouded Leopard National Park", loc:"near Sepahijala, Tripura", state:"Tripura", icon:"🐆",
+    blurb:"A national park near near Sepahijala, Tripura, known for clouded leopard.",
+    speciality:"Located near near Sepahijala in Tripura. Notable wildlife includes clouded leopard.",
+    creature:"Clouded leopard", creatureIcon:"🐆", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Clouded Leopard National Park" },
+  { id:"dudhwa", name:"Dudhwa National Park", loc:"Lakhimpur Kheri district, Uttar Pradesh", state:"Uttar Pradesh", icon:"🐅",
+    blurb:"A national park near Lakhimpur Kheri district, Uttar Pradesh, established 1977 and known for barasingha, Bengal tiger.",
+    speciality:"Terai grassland on the Nepal border, sheltering roughly half the world's swamp deer population.",
+    creature:"Barasingha", creatureIcon:"🐅", population:"~135 tigers · ~38 rhinos (est.)",
+    tDaily:"~500", tMonthly:"~14,500", tYearly:"~1.7 lakh", wikiTitle:"Dudhwa National Park" },
+  { id:"gangotri", name:"Gangotri National Park", loc:"Uttarkashi district, Uttarakhand", state:"Uttarakhand", icon:"🏔️",
+    blurb:"A national park near Uttarkashi district, Uttarakhand, known for Gaumukh Glacier wildlife.",
+    speciality:"Located near Uttarkashi district in Uttarakhand. Notable wildlife includes Gaumukh Glacier wildlife.",
+    creature:"Gaumukh Glacier wildlife", creatureIcon:"🏔️", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Gangotri National Park" },
+  { id:"govindpashuvihar", name:"Govind Pashu Vihar National Park", loc:"Uttarkashi district, Uttarakhand", state:"Uttarakhand", icon:"🐆",
+    blurb:"A national park near Uttarkashi district, Uttarakhand, known for snow leopard, musk deer.",
+    speciality:"Located near Uttarkashi district in Uttarakhand. Notable wildlife includes snow leopard, musk deer.",
+    creature:"Snow leopard", creatureIcon:"🐆", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Govind Pashu Vihar National Park" },
+  { id:"corbett", name:"Jim Corbett National Park", loc:"near Ramnagar, Uttarakhand", state:"Uttarakhand", icon:"🐅",
+    blurb:"A national park near near Ramnagar, Uttarakhand, established 1936 and known for Bengal tiger, Asian elephant.",
+    speciality:"India's very first national park, opened in 1936 and still famous for its tiger density along the Ramganga river.",
+    creature:"Bengal tiger", creatureIcon:"🐅", population:"~260 tigers (2022 census)",
+    tDaily:"~1,600", tMonthly:"~48,000", tYearly:"~5.2 lakh", wikiTitle:"Jim Corbett National Park" },
+  { id:"nandadevi", name:"Nanda Devi National Park", loc:"Chamoli district, Uttarakhand", state:"Uttarakhand", icon:"🐆",
+    blurb:"A national park near Chamoli district, Uttarakhand, known for Himalayan brown bear, snow leopard.",
+    speciality:"A remote glacial sanctuary ringing India's second-highest peak; its core zone has been closed to trekkers since 1983.",
+    creature:"Himalayan brown bear", creatureIcon:"🐆", population:"Very low density (est.)",
+    tDaily:"~5", tMonthly:"~150", tYearly:"~1,800", wikiTitle:"Nanda Devi National Park" },
+  { id:"rajaji", name:"Rajaji National Park", loc:"near Haridwar, Uttarakhand", state:"Uttarakhand", icon:"🐅",
+    blurb:"A national park near near Haridwar, Uttarakhand, known for Asian elephant, tiger.",
+    speciality:"Located near near Haridwar in Uttarakhand. Notable wildlife includes Asian elephant, tiger, leopard.",
+    creature:"Asian elephant", creatureIcon:"🐅", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Rajaji National Park" },
+  { id:"valleyofflowers", name:"Valley of Flowers National Park", loc:"Chamoli district, Uttarakhand", state:"Uttarakhand", icon:"🌸",
+    blurb:"A national park near Chamoli district, Uttarakhand, known for Himalayan wildflowers, blue sheep.",
+    speciality:"A UNESCO alpine meadow that turns into a carpet of rare wildflowers every monsoon.",
+    creature:"Himalayan wildflowers", creatureIcon:"🌸", population:"~200 blue sheep (est.)",
+    tDaily:"~300*", tMonthly:"~9,000*", tYearly:"~40,000 (Jun–Oct season)", wikiTitle:"Valley of Flowers National Park" },
+  { id:"buxa", name:"Buxa Tiger Reserve", loc:"near Alipurduar, West Bengal", state:"West Bengal", icon:"🐅",
+    blurb:"A national park near near Alipurduar, West Bengal, known for Bengal tiger, clouded leopard.",
+    speciality:"Located near near Alipurduar in West Bengal. Notable wildlife includes Bengal tiger, clouded leopard, gaur.",
+    creature:"Bengal tiger", creatureIcon:"🐅", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Buxa Tiger Reserve" },
+  { id:"gorumara", name:"Gorumara National Park", loc:"Jalpaiguri district, West Bengal", state:"West Bengal", icon:"🦏",
+    blurb:"A national park near Jalpaiguri district, West Bengal, known for Indian rhinoceros, gaur.",
+    speciality:"Located near Jalpaiguri district in West Bengal. Notable wildlife includes Indian rhinoceros, gaur, Asian elephant.",
+    creature:"Indian rhinoceros", creatureIcon:"🦏", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Gorumara National Park" },
+  { id:"jaldapara", name:"Jaldapara National Park", loc:"Alipurduar district, West Bengal", state:"West Bengal", icon:"🦏",
+    blurb:"A national park near Alipurduar district, West Bengal, known for Indian rhinoceros.",
+    speciality:"Located near Alipurduar district in West Bengal. Notable wildlife includes Indian rhinoceros.",
+    creature:"Indian rhinoceros", creatureIcon:"🦏", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Jaldapara National Park" },
+  { id:"neoravalley", name:"Neora Valley National Park", loc:"Kalimpong district, West Bengal", state:"West Bengal", icon:"🐼",
+    blurb:"A national park near Kalimpong district, West Bengal, known for red panda.",
+    speciality:"Located near Kalimpong district in West Bengal. Notable wildlife includes red panda.",
+    creature:"Red panda", creatureIcon:"🐼", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Neora Valley National Park" },
+  { id:"singalila", name:"Singalila National Park", loc:"Darjeeling district, West Bengal", state:"West Bengal", icon:"🐼",
+    blurb:"A national park near Darjeeling district, West Bengal, known for red panda, Himalayan wildlife.",
+    speciality:"Located near Darjeeling district in West Bengal. Notable wildlife includes red panda, Himalayan wildlife.",
+    creature:"Red panda", creatureIcon:"🐼", population:"Not officially published",
+    tDaily:"Not published", tMonthly:"Not published", tYearly:"Not published", wikiTitle:"Singalila National Park" },
+  { id:"sundarbans", name:"Sundarbans National Park", loc:"Sundarbans delta, West Bengal", state:"West Bengal", icon:"🐅",
+    blurb:"A national park near Sundarbans delta, West Bengal, known for Royal Bengal tiger, saltwater crocodile.",
+    speciality:"The world's largest mangrove forest, a UNESCO site known for tigers that swim between islands.",
+    creature:"Royal Bengal tiger", creatureIcon:"🐅", population:"~100 tigers (2022 census)",
+    tDaily:"~600", tMonthly:"~17,000", tYearly:"~1.5 lakh", wikiTitle:"Sundarbans National Park" },
+];
+
+// Group parks by state, in first-seen order matching the official state/UT list
+const STATE_ORDER = ["Andaman & Nicobar Islands", "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jammu & Kashmir", "Jharkhand", "Karnataka", "Kerala", "Ladakh", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"];
+
+let state = null;   // { parks: {id: {...defaultFields, rating, rank, prevRank, votes}}, recentVotes: [] }
+let current = null; // { a: parkObj, b: parkObj }
+let voting = false;
+let currentStateFilter = STATE_ORDER[0];
+
+function initDefaultState(){
+  const parks = {};
+  DEFAULT_PARKS.forEach(p => {
+    parks[p.id] = { ...p, rating: 1500, votes: 0, rank: 0, prevRank: 0, ratingSum: 0, ratingCount: 0 };
+  });
+  return { parks, recentVotes: [] };
+}
+
+async function loadState(){
+  try{
+    const res = await window.storage.get(STORAGE_KEY, true);
+    if(res && res.value){
+      const parsed = JSON.parse(res.value);
+      // merge in case new parks (or new fields) were added to DEFAULT_PARKS after data already existed
+      DEFAULT_PARKS.forEach(p => {
+        if(!parsed.parks[p.id]){
+          parsed.parks[p.id] = { ...p, rating: 1500, votes: 0, rank: 0, prevRank: 0, ratingSum: 0, ratingCount: 0 };
+        }else{
+          // backfill any new descriptive/rating fields onto existing saved parks
+          parsed.parks[p.id] = { ...p, ...parsed.parks[p.id] };
+          if(typeof parsed.parks[p.id].ratingSum !== 'number') parsed.parks[p.id].ratingSum = 0;
+          if(typeof parsed.parks[p.id].ratingCount !== 'number') parsed.parks[p.id].ratingCount = 0;
+        }
+      });
+      recomputeRanks(parsed, false);
+      return parsed;
+    }
+  }catch(e){
+    console.log('No existing data, initializing fresh.', e);
+  }
+  const fresh = initDefaultState();
+  recomputeRanks(fresh, false);
+  await saveState(fresh);
+  return fresh;
+}
+
+async function saveState(s){
+  try{
+    const res = await window.storage.set(STORAGE_KEY, JSON.stringify(s), true);
+    if(!res) console.error('Save returned null');
+  }catch(e){
+    console.error('Storage save error', e);
+  }
+}
+
+function recomputeRanks(s, trackChange){
+  const sorted = Object.values(s.parks).sort((a,b) => b.rating - a.rating);
+  sorted.forEach((p, idx) => {
+    const newRank = idx + 1;
+    if(trackChange){
+      p.prevRank = p.rank || newRank;
+    }
+    p.rank = newRank;
+  });
+}
+
+function eloUpdate(winner, loser){
+  const Ea = 1 / (1 + Math.pow(10, (loser.rating - winner.rating) / 400));
+  const Eb = 1 - Ea;
+  winner.rating = winner.rating + K * (1 - Ea);
+  loser.rating = loser.rating + K * (0 - Eb);
+  winner.rating = Math.round(winner.rating * 10) / 10;
+  loser.rating = Math.round(loser.rating * 10) / 10;
+}
+
+function pickMatchup(){
+  const ids = Object.keys(state.parks);
+  let aId, bId;
+  do{
+    aId = ids[Math.floor(Math.random() * ids.length)];
+    bId = ids[Math.floor(Math.random() * ids.length)];
+  } while(aId === bId || (current && ((aId===current.a.id && bId===current.b.id) || (aId===current.b.id && bId===current.a.id))));
+  current = { a: state.parks[aId], b: state.parks[bId] };
+}
+
+function wait(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+async function vote(winnerId, loserId){
+  if(voting) return;
+  voting = true;
+  document.querySelectorAll('.vote-btn').forEach(b => b.disabled = true);
+
+  const winner = state.parks[winnerId];
+  const loser = state.parks[loserId];
+  const ratingBefore = winner.rating;
+
+  const winnerCardEl = document.querySelector(`.park-card[data-park-id="${winnerId}"]`);
+  const loserCardEl = document.querySelector(`.park-card[data-park-id="${loserId}"]`);
+  if(winnerCardEl) winnerCardEl.classList.add('card-win');
+  if(loserCardEl) loserCardEl.classList.add('card-lose');
+
+  eloUpdate(winner, loser);
+  winner.votes += 1;
+  loser.votes += 1;
+  recomputeRanks(state, true);
+  state.recentVotes.unshift({
+    winner: winner.name, loser: loser.name,
+    winnerIcon: winner.icon, loserIcon: loser.icon,
+    ts: Date.now()
+  });
+  state.recentVotes = state.recentVotes.slice(0, 15);
+  await saveState(state);
+
+  const delta = Math.round((winner.rating - ratingBefore) * 10) / 10;
+  if(winnerCardEl){
+    spawnFloatingDelta(winnerCardEl, `+${delta}`);
+    spawnConfetti(winnerCardEl);
+  }
+  showToast(`${winner.icon} ${winner.name} takes this round`);
+
+  await wait(650);
+  pickMatchup();
+  voting = false;
+  render();
+}
+
+function spawnFloatingDelta(el, text){
+  const badge = document.createElement('span');
+  badge.className = 'floating-delta';
+  badge.textContent = text;
+  el.appendChild(badge);
+  setTimeout(() => badge.remove(), 950);
+}
+
+function spawnConfetti(el){
+  if(!el) return;
+  const rect = el.getBoundingClientRect();
+  const colors = ['#D9A441', '#5C9484', '#C1613F', '#EDE6D6'];
+  for(let i = 0; i < 12; i++){
+    const piece = document.createElement('span');
+    piece.className = 'confetti-piece';
+    piece.style.left = (rect.left + rect.width / 2 + (Math.random() * 90 - 45)) + 'px';
+    piece.style.top = (rect.top + 14) + 'px';
+    piece.style.background = colors[i % colors.length];
+    piece.style.transform = `rotate(${Math.random() * 360}deg)`;
+    piece.style.animationDelay = (Math.random() * 0.12) + 's';
+    document.body.appendChild(piece);
+    setTimeout(() => piece.remove(), 950);
+  }
+}
+
+let toastTimer;
+function showToast(message){
+  const el = document.getElementById('toast');
+  clearTimeout(toastTimer);
+  el.classList.remove('hide');
+  el.textContent = message;
+  el.classList.add('show');
+  toastTimer = setTimeout(() => {
+    el.classList.remove('show');
+    el.classList.add('hide');
+    setTimeout(() => { el.classList.remove('hide'); }, 250);
+  }, 2200);
+}
+
+function skipMatchup(){
+  pickMatchup();
+  render();
+}
+
+function avgRating(p){
+  return p.ratingCount > 0 ? p.ratingSum / p.ratingCount : 0;
+}
+
+function ratingColorClass(avg){
+  if(avg < 2.5) return 'rate-red';
+  if(avg < 3.5) return 'rate-yellow';
+  return 'rate-green';
+}
+
+async function ratePark(parkId, stars){
+  const p = state.parks[parkId];
+  if(!p) return;
+  p.ratingSum += stars;
+  p.ratingCount += 1;
+  await saveState(state);
+  renderStateParks();
+  showToast(`Thanks for rating ${p.name} ${stars}★`);
+  render(); // rankings table doesn't show rating, but keep state consistent everywhere
+}
+
+async function resetRankings(){
+  if(!confirm('This resets ratings and votes for everyone using this app. Continue?')) return;
+  state = initDefaultState();
+  recomputeRanks(state, false);
+  await saveState(state);
+  pickMatchup();
+  render();
+}
+
+function timeAgo(ts){
+  const s = Math.floor((Date.now() - ts) / 1000);
+  if(s < 5) return 'just now';
+  if(s < 60) return s + 's ago';
+  const m = Math.floor(s/60);
+  if(m < 60) return m + 'm ago';
+  const h = Math.floor(m/60);
+  if(h < 24) return h + 'h ago';
+  const d = Math.floor(h/24);
+  return d + 'd ago';
+}
+
+function changeMarkup(p){
+  const diff = (p.prevRank || p.rank) - p.rank;
+  if(diff > 0) return `<span class="change-up">↑ ${diff}</span>`;
+  if(diff < 0) return `<span class="change-down">↓ ${Math.abs(diff)}</span>`;
+  return `<span class="change-flat">— 0</span>`;
+}
+
+function rankBadgeClass(rank){
+  if(rank === 1) return 'rank-badge r1';
+  if(rank === 2) return 'rank-badge r2';
+  if(rank === 3) return 'rank-badge r3';
+  return 'rank-badge';
+}
+
+function render(){
+  const app = document.getElementById('app');
+  const sorted = Object.values(state.parks).sort((a,b) => a.rank - b.rank);
+
+  const matchupHtml = `
+    <section class="matchup-section">
+      <div class="matchup-label">Which park would you rather visit?</div>
+      <div class="matchup">
+        ${parkCard(current.a, current.b.id)}
+        <div class="vs-badge">VS</div>
+        ${parkCard(current.b, current.a.id)}
+      </div>
+      <div class="skip-row"><button class="skip-link" onclick="skipMatchup()">skip this matchup</button></div>
+    </section>
+  `;
+
+  const rankingsHtml = `
+    <div>
+      <h2 class="panel-heading">Rankings <span class="count">${sorted.length} parks</span></h2>
+      <table class="rankings">
+        <thead>
+          <tr><th class="rank-cell">#</th><th>Park</th><th style="text-align:right;">Rating</th><th style="text-align:right;">Change</th></tr>
+        </thead>
+        <tbody>
+          ${sorted.map(p => `
+            <tr class="${p.rank <= 3 ? 'rank-row-top rank-row-' + p.rank : ''}">
+              <td class="rank-cell"><span class="${rankBadgeClass(p.rank)}">${p.rank}</span></td>
+              <td>
+                <div class="park-cell">
+                  <span class="icon" aria-hidden="true">${p.icon}</span>
+                  <div>
+                    <div class="name">${p.name}</div>
+                    <div class="loc">${p.loc}</div>
+                  </div>
+                </div>
+              </td>
+              <td class="score-cell">${Math.round(p.rating)}</td>
+              <td class="change-cell">${changeMarkup(p)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  const recentHtml = `
+    <div>
+      <h2 class="panel-heading">Recent Votes <span class="count">${state.recentVotes.length}</span></h2>
+      <div class="recent-list">
+        ${state.recentVotes.length === 0 ? '<div class="empty-note">No votes yet — cast the first one above.</div>' :
+          state.recentVotes.map(v => `
+            <div class="recent-item">
+              <span class="winner">${v.winnerIcon} ${v.winner}</span> beat <span class="loser">${v.loser}</span>
+              <span class="time">${timeAgo(v.ts)}</span>
+            </div>
+          `).join('')}
+      </div>
+    </div>
+  `;
+
+  app.innerHTML = matchupHtml + `<div class="lower-grid">${rankingsHtml}${recentHtml}</div>`;
+  document.getElementById('footerNote').style.display = 'block';
+  loadParkPhotos();
+}
+
+function parkCard(park, opponentId){
+  return `
+    <div class="park-card" data-park-id="${park.id}">
+      <div class="photo-frame photo-frame-lg" data-wiki="${park.wikiTitle}">
+        <span class="frame-icon" aria-hidden="true">${park.icon}</span>
+      </div>
+      <h3 class="park-name">${park.name}</h3>
+      <div class="park-loc">${park.loc}</div>
+      <p class="park-blurb">${park.blurb}</p>
+      <button class="vote-btn" ${voting ? 'disabled' : ''} onclick="vote('${park.id}','${opponentId}')" aria-label="Vote for ${park.name}">Vote this park</button>
+    </div>
+  `;
+}
+
+function starMarkup(parkId, avg){
+  const rounded = Math.round(avg);
+  let stars = '';
+  for(let i = 1; i <= 5; i++){
+    stars += `<button class="star ${i <= rounded ? 'filled' : ''}" onclick="ratePark('${parkId}', ${i})" aria-label="Rate ${i} out of 5 stars">★</button>`;
+  }
+  return stars;
+}
+
+function explorePark(park){
+  const avg = avgRating(park);
+  const count = park.ratingCount;
+  const colorClass = count > 0 ? ratingColorClass(avg) : 'rate-none';
+  const avgLabel = count > 0 ? avg.toFixed(1) : '—';
+  return `
+    <div class="explore-card">
+      <div class="photo-frame photo-frame-sm" data-wiki="${park.wikiTitle}">
+        <span class="frame-icon" aria-hidden="true">${park.icon}</span>
+      </div>
+      <div class="explore-top">
+        <div>
+          <h3 class="explore-name">${park.name}</h3>
+          <div class="park-loc">${park.loc}</div>
+        </div>
+        <div class="rating-badge ${colorClass}" aria-label="Average rating ${count > 0 ? avgLabel + ' out of 5' : 'not yet rated'}">${avgLabel}<span class="rating-badge-max">/5</span></div>
+      </div>
+      <p class="explore-speciality">${park.speciality}</p>
+      <div class="explore-stats">
+        <div class="stat-chip">
+          <span class="stat-label">Famous for</span>
+          <span class="stat-value"><span aria-hidden="true">${park.creatureIcon}</span> ${park.creature}</span>
+        </div>
+        <div class="stat-chip">
+          <span class="stat-label">Population</span>
+          <span class="stat-value">${park.population}</span>
+        </div>
+      </div>
+      <div class="visitor-row">
+        <div class="visitor-stat"><span class="v-num">${park.tDaily}</span><span class="v-label">per day</span></div>
+        <div class="visitor-stat"><span class="v-num">${park.tMonthly}</span><span class="v-label">per month</span></div>
+        <div class="visitor-stat"><span class="v-num">${park.tYearly}</span><span class="v-label">per year</span></div>
+      </div>
+      <div class="rate-row">
+        <span class="rate-label">Rate this park</span>
+        <div class="stars">${starMarkup(park.id, avg)}</div>
+        <span class="rate-count">${count} rating${count === 1 ? '' : 's'}</span>
+      </div>
+    </div>
+  `;
+}
+
+let dropdownOpen = false;
+
+function escapeHtml(str){
+  return str.replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+
+function highlightMatch(text, query){
+  if(!query) return escapeHtml(text);
+  const idx = text.toLowerCase().indexOf(query.toLowerCase());
+  if(idx === -1) return escapeHtml(text);
+  return escapeHtml(text.slice(0, idx)) + '<mark>' + escapeHtml(text.slice(idx, idx + query.length)) + '</mark>' + escapeHtml(text.slice(idx + query.length));
+}
+
+function renderStateSelect(query){
+  const q = (query || '').trim().toLowerCase();
+  const listbox = document.getElementById('stateListbox');
+
+  const matches = STATE_ORDER.map(s => {
+    const parksInState = Object.values(state.parks).filter(p => p.state === s);
+    const stateMatches = !q || s.toLowerCase().includes(q);
+    const matchedParkNames = parksInState.filter(p => p.name.toLowerCase().includes(q)).map(p => p.name);
+    const show = !q || stateMatches || matchedParkNames.length > 0;
+    return { state: s, count: parksInState.length, show, matchedParkNames, stateMatches };
+  }).filter(m => m.show);
+
+  if(matches.length === 0){
+    listbox.innerHTML = `<li class="select-empty">No states or parks match "${escapeHtml(query)}"</li>`;
+  }else{
+    listbox.innerHTML = matches.map((m, i) => {
+      const active = m.state === currentStateFilter;
+      const label = highlightMatch(m.state, m.stateMatches ? q : '');
+      const sub = (!m.stateMatches && m.matchedParkNames.length > 0)
+        ? `<div class="opt-sub">matches ${highlightMatch(m.matchedParkNames[0], q)}${m.matchedParkNames.length > 1 ? ` +${m.matchedParkNames.length - 1} more` : ''}</div>`
+        : '';
+      return `<li class="select-option ${active ? 'active' : ''}" style="--i:${i}" role="option" id="opt-${m.state.replace(/\s+/g,'-')}" aria-selected="${active}" data-state="${m.state}" onclick="selectState('${m.state}')">
+        <span>${label}${sub}</span><span class="opt-count">${m.count}</span>
+      </li>`;
+    }).join('');
+  }
+  document.getElementById('stateTriggerLabel').textContent = currentStateFilter;
+}
+
+function toggleDropdown(forceOpen){
+  const wrap = document.getElementById('stateDropdownWrap');
+  const trigger = document.getElementById('stateTrigger');
+  const panel = document.getElementById('stateListboxWrap');
+  const search = document.getElementById('stateSearch');
+  dropdownOpen = typeof forceOpen === 'boolean' ? forceOpen : !dropdownOpen;
+  wrap.classList.toggle('open', dropdownOpen);
+  trigger.setAttribute('aria-expanded', String(dropdownOpen));
+  panel.hidden = !dropdownOpen;
+  if(dropdownOpen){
+    search.value = '';
+    renderStateSelect('');
+    setTimeout(() => search.focus(), 50);
+  }
+}
+
+function selectState(s){
+  currentStateFilter = s;
+  renderStateSelect(document.getElementById('stateSearch')?.value || '');
+  renderStateParks();
+  toggleDropdown(false);
+  document.getElementById('stateTrigger').focus();
+}
+
+function setupDropdown(){
+  const trigger = document.getElementById('stateTrigger');
+  const search = document.getElementById('stateSearch');
+  const listbox = document.getElementById('stateListbox');
+  const wrap = document.getElementById('stateDropdownWrap');
+
+  trigger.addEventListener('click', () => toggleDropdown());
+
+  trigger.addEventListener('keydown', (e) => {
+    if(e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' '){
+      e.preventDefault();
+      toggleDropdown(true);
+    }
+  });
+
+  search.addEventListener('input', (e) => renderStateSelect(e.target.value));
+
+  search.addEventListener('keydown', (e) => {
+    const options = Array.from(listbox.querySelectorAll('.select-option[data-state]'));
+    if(options.length === 0 && e.key !== 'Escape') return;
+    const idx = options.findIndex(o => o.dataset.state === currentStateFilter);
+    if(e.key === 'Escape'){
+      toggleDropdown(false);
+      trigger.focus();
+    }else if(e.key === 'ArrowDown'){
+      e.preventDefault();
+      const next = options[Math.min(idx + 1, options.length - 1)] || options[0];
+      if(next) selectState(next.dataset.state);
+    }else if(e.key === 'ArrowUp'){
+      e.preventDefault();
+      const prev = options[Math.max(idx - 1, 0)] || options[0];
+      if(prev) selectState(prev.dataset.state);
+    }else if(e.key === 'Enter'){
+      e.preventDefault();
+      if(options[0]) selectState(options[0].dataset.state);
+    }
+  });
+
+  document.addEventListener('click', (e) => {
+    if(dropdownOpen && !wrap.contains(e.target)){
+      toggleDropdown(false);
+    }
+  });
+}
+
+function renderStateParks(){
+  const container = document.getElementById('stateParks');
+  const parks = Object.values(state.parks)
+    .filter(p => p.state === currentStateFilter)
+    .sort((a,b) => a.name.localeCompare(b.name));
+  container.innerHTML = `
+    <div class="explore-grid">
+      ${parks.map(explorePark).join('')}
+    </div>
+  `;
+  loadParkPhotos();
+}
+
+function setupGlobalRipple(){
+  document.addEventListener('click', (e) => {
+    const target = e.target.closest('.vote-btn, .star, .auth-trigger, .auth-btn, .select-option, #resetBtn, .skip-link');
+    if(!target || target.disabled) return;
+    const rect = target.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    const ripple = document.createElement('span');
+    ripple.className = 'ripple';
+    ripple.style.width = ripple.style.height = size + 'px';
+    ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
+    ripple.style.top = (e.clientY - rect.top - size / 2) + 'px';
+    target.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 600);
+  });
+}
+
+function drawTreeline(){
+  const svg = document.getElementById('treeline');
+  const width = window.innerWidth;
+  const viewHeight = 120;
+  svg.setAttribute('viewBox', `0 0 ${width} ${viewHeight}`);
+  const spacing = 58;
+  const count = Math.ceil(width / spacing) + 2;
+  let polys = '';
+  for(let i = 0; i < count; i++){
+    const x = i * spacing + (i % 2 === 0 ? 0 : 10);
+    const h = 46 + ((i * 37) % 40); // pseudo-random varied heights
+    const w = 40;
+    const base = viewHeight - 4;
+    polys += `<polygon points="${x + w/2},${base - h} ${x},${base} ${x + w},${base}"/>`;
+  }
+  svg.innerHTML = polys;
+}
+
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(drawTreeline, 150);
+});
+
+async function boot(){
+  drawTreeline();
+  state = await loadState();
+  await loadSavedClientId();
+  if(currentUser){
+    document.getElementById('authTriggerLabel').textContent = (currentUser.name || 'Account').split(' ')[0];
+  }
+  pickMatchup();
+  render();
+  renderStateSelect();
+  renderStateParks();
+  setupDropdown();
+  setupAuth();
+  setupGlobalRipple();
+  document.getElementById('resetBtn').addEventListener('click', resetRankings);
+}
+
+function setupAuth(){
+  document.getElementById('authTrigger').addEventListener('click', () => toggleAuthPopup());
+  document.addEventListener('click', (e) => {
+    const corner = document.getElementById('authCorner');
+    if(authOpen && !corner.contains(e.target)) toggleAuthPopup(false);
+  });
+  document.addEventListener('keydown', (e) => {
+    if(e.key === 'Escape' && authOpen) toggleAuthPopup(false);
+  });
+}
+
+boot();
+</script>
+</body>
+</html>
